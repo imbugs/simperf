@@ -3,8 +3,8 @@ simperf
 
 Simperf 是一个简单的性能测试工具，它提供了一个多线程测试框架
 
- Example:
-
+<b>Example:</b>
+<pre>
  Simperf perf = new Simperf(50, 2000, 1000, 
        new SimperfThreadFactory() {
             public SimperfThread newThread() {
@@ -15,4 +15,4 @@ Simperf 是一个简单的性能测试工具，它提供了一个多线程测试
  perf.getPrintThread().setLogFile("simperf.log");
  // 开始性能测试
  perf.start();
- 
+ </pre>
