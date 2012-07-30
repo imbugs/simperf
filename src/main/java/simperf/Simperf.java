@@ -31,6 +31,7 @@ public class Simperf {
     private int                  threadPoolSize = 50;
     private int                  loopCount      = 2000;
     private int                  interval       = 1000;
+    private long                 maxTps         = -1;
     private SimperfThreadFactory threadFactory  = null;
     private PrintStatus          printThread    = null;
 
@@ -78,6 +79,7 @@ public class Simperf {
             }
             threads[i].setTransCount(loopCount);
             threads[i].setThreadLatch(threadLatch);
+            threads[i].setMaxTps(maxTps);
             threadPool.execute(threads[i]);
         }
         threadPool.shutdown();
@@ -98,10 +100,6 @@ public class Simperf {
 
     public int getThreadPoolSize() {
         return threadPoolSize;
-    }
-
-    public void setThreadPoolSize(int threadPoolSize) {
-        this.threadPoolSize = threadPoolSize;
     }
 
     public int getLoopCount() {
@@ -146,5 +144,13 @@ public class Simperf {
 
     public String getStartInfo() {
         return startInfo;
+    }
+
+    public long getMaxTps() {
+        return maxTps;
+    }
+
+    public void setMaxTps(long maxTps) {
+        this.maxTps = maxTps;
     }
 }

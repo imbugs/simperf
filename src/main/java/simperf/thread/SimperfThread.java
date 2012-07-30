@@ -10,9 +10,18 @@ import simperf.result.DataStatistics;
  */
 public class SimperfThread implements Runnable {
 
-    protected long           transCount = 0;
-    protected DataStatistics statistics = new DataStatistics();
+    protected long           transCount    = 0;
+    protected DataStatistics statistics    = new DataStatistics();
     protected CountDownLatch threadLatch;
+
+    /**
+     * 限速设置
+     */
+    protected long           maxTps        = -1;
+    /**
+     * 记录超限次数，用以平衡速度
+     */
+    protected long           overflowCount = 1;
 
     public void run() {
         try {
@@ -28,10 +37,44 @@ public class SimperfThread implements Runnable {
                 }
                 transCount--;
                 statistics.endTime = System.currentTimeMillis();
+                if (maxTps > 0) {
+                    // 休眠一定时间，达到指定TPS
+                    long sleepTime = calcSleepTime();
+                    if (sleepTime > 0) {
+                        Thread.sleep(sleepTime);
+                    }
+                }
             }
             afterRunTask();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * 计算休眠时间，以达到指定maxTPS
+     */
+    protected long calcSleepTime() {
+        if (maxTps <= 0) {
+            return -1;
+        }
+        long allCount = statistics.successCount + statistics.failCount;
+        long allTime = statistics.endTime - statistics.startTime;
+        if (allCount < maxTps * allTime / 1000) {
+            if (overflowCount > 1) {
+                overflowCount >>= 1;
+            }
+            return -1;
+        } else {
+            overflowCount <<= 1;
+            float expTime = 1000 / maxTps;
+            float actTime = allTime / allCount;
+            long differ = (long) (expTime - actTime);
+            long sleep = differ + overflowCount;
+            if (sleep <= 0) {
+                return 1;
+            }
+            return differ + overflowCount;
         }
     }
 
@@ -76,5 +119,13 @@ public class SimperfThread implements Runnable {
 
     public DataStatistics getStatistics() {
         return statistics;
+    }
+
+    public long getMaxTps() {
+        return maxTps;
+    }
+
+    public void setMaxTps(long maxTps) {
+        this.maxTps = maxTps;
     }
 }
