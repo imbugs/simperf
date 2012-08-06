@@ -26,7 +26,7 @@ public class PrintStatus extends Thread {
     private long             endTime   = 0;
 
     private FileWriter       fw        = null;
-    private SimpleDateFormat sdf       = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,ms");
+    private SimpleDateFormat sdf       = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
     // 上一次记录
     private DataStatistics   lastData  = new DataStatistics();
 
