@@ -2,7 +2,10 @@ package simperf.thread;
 
 import java.util.concurrent.CountDownLatch;
 
+import simperf.config.SimperfConfig;
 import simperf.result.DataStatistics;
+import simperf.result.JTLRecord;
+import simperf.result.JTLResult;
 
 /**
  * 任务线程
@@ -30,7 +33,9 @@ public class SimperfThread implements Runnable {
             beforeRunTask();
             statistics.startTime = System.currentTimeMillis();
             while (transCount > 0) {
-                if (runTask()) {
+                Object obj = beforeInvoke();
+                boolean result = runTask();
+                if (result) {
                     statistics.successCount++;
                 } else {
                     statistics.failCount++;
@@ -44,11 +49,27 @@ public class SimperfThread implements Runnable {
                         Thread.sleep(sleepTime);
                     }
                 }
+                afterInvoke(result, obj);
             }
             afterRunTask();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    protected void afterInvoke(boolean result, Object beforeInvokeResult) {
+        if (SimperfConfig.isUseConfig() && SimperfConfig.hasConfig(SimperfConfig.JTL_RESULT)) {
+            JTLResult jtl = (JTLResult) SimperfConfig.getConfig(SimperfConfig.JTL_RESULT);
+            long tsend = (Long) beforeInvokeResult;
+            jtl.addRecord(new JTLRecord(statistics.endTime - tsend, tsend, result));
+        }
+    }
+
+    protected Object beforeInvoke() {
+        if (SimperfConfig.isUseConfig() && SimperfConfig.hasConfig(SimperfConfig.JTL_RESULT)) {
+            return System.currentTimeMillis();
+        }
+        return null;
     }
 
     /**

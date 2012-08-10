@@ -3,7 +3,9 @@ package simperf.thread;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import simperf.result.DataStatistics;
@@ -21,16 +23,21 @@ public class PrintStatus extends Thread {
 
     private int              interval;
     // 最早一次发送的时间
-    private long             earlyTime = 0;
+    private long             earlyTime  = 0;
     // 最后一次发送时间
-    private long             endTime   = 0;
+    private long             endTime    = 0;
 
-    private FileWriter       fw        = null;
-    private SimpleDateFormat sdf       = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+    private FileWriter       fw         = null;
+    private SimpleDateFormat sdf        = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
     // 上一次记录
-    private DataStatistics   lastData  = new DataStatistics();
+    private DataStatistics   lastData   = new DataStatistics();
 
-    private String           logFile   = "simperf-result.log";
+    private String           logFile    = "simperf-result.log";
+
+    /**
+     * 程序退出之前需要执行的代码
+     */
+    private List<Callback>   beforeExit = new ArrayList<Callback>();
 
     public PrintStatus(SimperfThread[] threads, ExecutorService threadPool, int interval) {
         this.threads = threads;
@@ -62,6 +69,11 @@ public class PrintStatus extends Thread {
     }
 
     public void onExit() {
+        if (beforeExit.size() > 0) {
+            for (Callback task : beforeExit) {
+                task.run();
+            }
+        }
         try {
             fw.close();
         } catch (IOException e) {
@@ -123,6 +135,14 @@ public class PrintStatus extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void registerCallback(Callback c) {
+        this.beforeExit.add(c);
+    }
+
+    public void clearCallback() {
+        this.beforeExit.clear();
     }
 
     public String getLogFile() {
