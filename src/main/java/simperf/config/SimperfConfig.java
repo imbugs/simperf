@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * Simperf全局配置信息
- * @author tinghe
+ * @author imbugs
  */
 public class SimperfConfig {
     /**
@@ -13,24 +13,24 @@ public class SimperfConfig {
      */
     private static boolean             useConfig  = false;
     public static final String         JTL_RESULT = "JTL.RESULT";
-    private static Map<String, Object> attrs      = new HashMap<String, Object>();
+    private static Map<String, Object> attributes = new HashMap<String, Object>();
 
     public static boolean hasConfig(String key) {
         if (key == null) {
             return false;
         }
-        return attrs.containsKey(key);
+        return attributes.containsKey(key);
     }
 
     public static Object getConfig(String key) {
         if (hasConfig(key)) {
-            return attrs.get(key);
+            return attributes.get(key);
         }
         return null;
     }
 
     public static void setConfig(String key, Object obj) {
-        attrs.put(key, obj);
+        attributes.put(key, obj);
         setUseConfig(true);
     }
 

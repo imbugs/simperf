@@ -51,18 +51,25 @@ public class Simperf {
     }
 
     public Simperf(int thread, int count, int interval) {
-        this(thread, count);
+        this.threadPoolSize = thread;
+        this.loopCount = count;
         this.interval = interval;
+        initThreadPool();
     }
 
     public Simperf(int thread, int count, SimperfThreadFactory threadFactory) {
-        this(thread, count);
+        this.threadPoolSize = thread;
+        this.loopCount = count;
         this.threadFactory = threadFactory;
+        initThreadPool();
     }
 
     public Simperf(int thread, int count, int interval, SimperfThreadFactory threadFactory) {
-        this(thread, count, interval);
+        this.threadPoolSize = thread;
+        this.loopCount = count;
+        this.interval = interval;
         this.threadFactory = threadFactory;
+        initThreadPool();
     }
 
     public void start(SimperfThreadFactory threadFactory) {
@@ -116,6 +123,9 @@ public class Simperf {
 
     public void setInterval(int interval) {
         this.interval = interval;
+        if (printThread != null) {
+            printThread.setInterval(interval);
+        }
     }
 
     public SimperfThreadFactory getThreadFactory() {

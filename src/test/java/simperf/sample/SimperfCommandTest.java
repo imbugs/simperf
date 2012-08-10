@@ -1,25 +1,17 @@
 package simperf.sample;
 
 import simperf.Simperf;
+import simperf.command.SimperfCommand;
 import simperf.thread.SimperfThread;
 import simperf.thread.SimperfThreadFactory;
 
-public class SimperfTest {
+public class SimperfCommandTest {
     static MessageSender sender = new MessageSender();
 
-    /**
-     * @param args
-     */
     public static void main(String[] args) {
-
-        Simperf perf = new Simperf(10, 100);
-        perf.setMaxTps(5);
-        perf.getPrintThread().setLogFile("xxx.log");
-
-        // 打印JTL日志，会有一些性能损耗
-        //JTLResult jtl = new JTLResult(perf.getPrintThread());
-        //SimperfConfig.setConfig(SimperfConfig.JTL_RESULT, jtl);
-
+        String[] xx = new String[] { "-c", "10", "-t", "100", "-i", "200" };
+        SimperfCommand simCommand = new SimperfCommand(xx);
+        Simperf perf = simCommand.create();
         perf.start(new SimperfThreadFactory() {
             public SimperfThread newThread() {
                 SendMessageThread t = new SendMessageThread();

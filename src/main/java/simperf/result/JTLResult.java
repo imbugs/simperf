@@ -10,23 +10,27 @@ import simperf.thread.PrintStatus;
 
 /**
  * 输出JTL结果
- * @author tinghe
+ * @author imbugs
  */
 public class JTLResult extends Thread {
     private String                   fileName  = "simperf.jtl";
     private FileWriter               fw        = null;
     private BlockingQueue<JTLRecord> jtlRecord = new LinkedBlockingQueue<JTLRecord>();
+    // 把本线程的结束回调注册到监控线程上
+    private PrintStatus              statusThread;
 
     public JTLResult(String fileName, PrintStatus statusThread) {
         this.fileName = fileName;
-        init(statusThread);
+        this.statusThread = statusThread;
+        init();
     }
 
     public JTLResult(PrintStatus statusThread) {
-        init(statusThread);
+        this.statusThread = statusThread;
+        init();
     }
 
-    public void init(PrintStatus statusThread) {
+    public void init() {
         try {
             fw = new FileWriter(fileName, false);
         } catch (IOException e) {
@@ -35,8 +39,9 @@ public class JTLResult extends Thread {
 
         this.start();
         // 注册回调函数，监控线程退出之前需要先结束本线程
-        statusThread.registerCallback(new Callback() {
+        this.statusThread.registerCallback(new Callback() {
             public void run() {
+                // 终止本线程的时候，所有threadPool中的线程已经终止了
                 JTLResult.this.interrupt();
                 while (JTLResult.this.isAlive()) {
                     try {
@@ -87,6 +92,7 @@ public class JTLResult extends Thread {
                     fw.write(getRecord(r));
                 }
             } catch (InterruptedException e) {
+                // 此线程在此处正常终止
                 fw.write(getTail());
                 fw.close();
             }

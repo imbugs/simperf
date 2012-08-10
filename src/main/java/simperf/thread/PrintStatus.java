@@ -152,4 +152,12 @@ public class PrintStatus extends Thread {
     public void setLogFile(String logFile) {
         this.logFile = logFile;
     }
+
+    public int getInterval() {
+        return interval;
+    }
+
+    public void setInterval(int interval) {
+        this.interval = interval;
+    }
 }
