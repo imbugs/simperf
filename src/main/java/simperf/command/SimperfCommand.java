@@ -19,12 +19,12 @@ public class SimperfCommand {
     private Options     options = new Options();
 
     public SimperfCommand(String[] args) {
-        options.addOption("t", "thread", true, "[require] number of thread count");
-        options.addOption("c", "count", true, "[require] number of each thread requests count");
-        options.addOption("i", "interval", true, "interval of print messages, default 1000");
-        options.addOption("j", true, "generate jtl report");
-        options.addOption("m", "maxtps", true, "max tps");
-        options.addOption("l", "log", true, "log filename");
+        options.addOption("t", "thread", true, "[*] number of thread count");
+        options.addOption("c", "count", true, "[*] number of each thread requests count");
+        options.addOption("i", "interval", true, "[ ] interval of print messages, default 1000");
+        options.addOption("j", true, "[ ] generate jtl report");
+        options.addOption("m", "maxtps", true, "[ ] max tps");
+        options.addOption("l", "log", true, "[ ] log filename");
 
         try {
             cmd = new PosixParser().parse(options, args);
