@@ -12,29 +12,32 @@ import simperf.result.JTLResult;
 
 /**
  * Simperf的命令行用法
+ * 
  * @author imbugs
  */
 public class SimperfCommand {
     private CommandLine cmd     = null;
     private Options     options = new Options();
+    private String[]    args    = null;
 
     public SimperfCommand(String[] args) {
+        this.args = args;
         options.addOption("t", "thread", true, "[*] number of thread count");
         options.addOption("c", "count", true, "[*] number of each thread requests count");
         options.addOption("i", "interval", true, "[ ] interval of print messages, default 1000");
         options.addOption("j", true, "[ ] generate jtl report");
         options.addOption("m", "maxtps", true, "[ ] max tps");
         options.addOption("l", "log", true, "[ ] log filename");
+    }
 
+    public Simperf create() {
         try {
             cmd = new PosixParser().parse(options, args);
         } catch (ParseException e1) {
             new HelpFormatter().printHelp("SimperfCommand options", options);
-            return;
+            return null;
         }
-    }
 
-    public Simperf create() {
         int thread = 0;
         if (!cmd.hasOption("t")) {
             new HelpFormatter().printHelp("SimperfCommand options", options);
@@ -70,5 +73,29 @@ public class SimperfCommand {
         }
 
         return simperf;
+    }
+
+    public CommandLine getCmd() {
+        return cmd;
+    }
+
+    public void setCmd(CommandLine cmd) {
+        this.cmd = cmd;
+    }
+
+    public Options getOptions() {
+        return options;
+    }
+
+    public void setOptions(Options options) {
+        this.options = options;
+    }
+
+    public String[] getArgs() {
+        return args;
+    }
+
+    public void setArgs(String[] args) {
+        this.args = args;
     }
 }
