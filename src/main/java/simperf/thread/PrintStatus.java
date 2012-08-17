@@ -39,6 +39,8 @@ public class PrintStatus extends Thread {
      */
     private List<Callback>   beforeExit = new ArrayList<Callback>();
 
+    String                   msgFormat  = "{time:'%s' ,avgTps:%s ,count:%d ,duration:%d ,fail:%d ,tTps:%s ,tCount:%d ,tDuration:%d ,tFail:%d}";
+
     public PrintStatus(SimperfThread[] threads, ExecutorService threadPool, int interval) {
         this.threads = threads;
         this.threadPool = threadPool;
@@ -103,8 +105,8 @@ public class PrintStatus extends Thread {
         String avgTps = SimperfUtil.divide(count * 1000, duration);
 
         String now = sdf.format(new Date());
-        String msg = now + " , ALL [avgTps=" + avgTps + " ,count=" + count + " ,duration="
-                     + duration + " ,fail=" + allCalc.failCount + "]";
+
+        String msg;
 
         // 统计实时信息
         if (lastData.endTime != 0) {
@@ -112,12 +114,12 @@ public class PrintStatus extends Thread {
             long tCount = count - lastData.successCount - lastData.failCount;
             long tFail = allCalc.failCount - lastData.failCount;
             String tTps = SimperfUtil.divide(tCount * 1000, tDuration);
-            msg += " NOW [tTps=" + tTps + " ,tCount=" + tCount + " ,tDuration=" + tDuration
-                   + " ,tFail=" + tFail + "]\n";
+            msg = String.format(msgFormat, now, avgTps, count, duration, allCalc.failCount, tTps,
+                tCount, tDuration, tFail);
         } else {
             // 第一次统计，没有上次记录结果
-            msg += " NOW [tTps=" + avgTps + " ,tCount=" + count + " ,tDuration=" + duration
-                   + " ,tFail=" + allCalc.failCount + "]\n";
+            msg = String.format(msgFormat, now, avgTps, count, duration, allCalc.failCount, avgTps,
+                count, duration, allCalc.failCount);
         }
 
         write(msg);
@@ -159,5 +161,13 @@ public class PrintStatus extends Thread {
 
     public void setInterval(int interval) {
         this.interval = interval;
+    }
+
+    public String getMsgFormat() {
+        return msgFormat;
+    }
+
+    public void setMsgFormat(String msgFormat) {
+        this.msgFormat = msgFormat;
     }
 }

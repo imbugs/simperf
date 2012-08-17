@@ -12,7 +12,7 @@ public class SimperfTest {
      */
     public static void main(String[] args) {
 
-        Simperf perf = new Simperf(10, 100);
+        Simperf perf = new Simperf(10, 10);
         perf.setMaxTps(5);
         perf.getPrintThread().setLogFile("xxx.log");
 

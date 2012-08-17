@@ -38,7 +38,11 @@ public class Simperf {
     private ExecutorService      threadPool     = null;
     private CountDownLatch       threadLatch    = null;
     private SimperfThread[]      threads        = null;
-    private String               startInfo      = "to be start!";
+    private String               startInfo      = "{}";
+    /**
+     * JSON Style infomation
+     */
+    private String               extInfo        = null;
 
     public Simperf() {
         initThreadPool();
@@ -90,8 +94,8 @@ public class Simperf {
             threadPool.execute(threads[i]);
         }
         threadPool.shutdown();
-        startInfo = "Started! (THREAD_POOL_SIZE=" + threadPoolSize + ",LOOP_COUNT=" + loopCount
-                    + ",INTERVAL=" + interval + ")";
+        startInfo = "{StartInfo: {THREAD_POOL_SIZE:" + threadPoolSize + ",LOOP_COUNT:" + loopCount
+                    + ",INTERVAL:" + interval + "}, ExtInfo: " + extInfo + "}";
         printThread.write(startInfo + "\n");
         printThread.start();
     }
@@ -162,5 +166,16 @@ public class Simperf {
 
     public void setMaxTps(long maxTps) {
         this.maxTps = maxTps;
+    }
+
+    public String getExtInfo() {
+        return extInfo;
+    }
+
+    /**
+     * json style extinfo
+     */
+    public void setExtInfo(String extInfo) {
+        this.extInfo = extInfo;
     }
 }
