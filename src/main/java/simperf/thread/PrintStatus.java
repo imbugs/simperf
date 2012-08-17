@@ -39,7 +39,7 @@ public class PrintStatus extends Thread {
      */
     private List<Callback>   beforeExit = new ArrayList<Callback>();
 
-    String                   msgFormat  = "{time:'%s' ,avgTps:%s ,count:%d ,duration:%d ,fail:%d ,tTps:%s ,tCount:%d ,tDuration:%d ,tFail:%d}";
+    String                   msgFormat  = "{time:'%s' ,avgTps:%s ,count:%d ,duration:%d ,fail:%d ,tTps:%s ,tCount:%d ,tDuration:%d ,tFail:%d}\n";
 
     public PrintStatus(SimperfThread[] threads, ExecutorService threadPool, int interval) {
         this.threads = threads;
