@@ -73,7 +73,7 @@ public class PrintStatus extends Thread {
     public void onExit() {
         if (beforeExit.size() > 0) {
             for (Callback task : beforeExit) {
-                task.run();
+                task.run(this);
             }
         }
         try {

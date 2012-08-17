@@ -40,7 +40,7 @@ public class JTLResult extends Thread {
         this.start();
         // 注册回调函数，监控线程退出之前需要先结束本线程
         this.statusThread.registerCallback(new Callback() {
-            public void run() {
+            public void run(PrintStatus ps) {
                 // 终止本线程的时候，所有threadPool中的线程已经终止了
                 JTLResult.this.interrupt();
                 while (JTLResult.this.isAlive()) {

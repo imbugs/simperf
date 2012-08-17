@@ -1,5 +1,5 @@
 package simperf.thread;
 
 public interface Callback {
-    public void run();
+    public void run(PrintStatus pstatus);
 }
