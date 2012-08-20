@@ -28,6 +28,7 @@ public class SimperfThread implements Runnable {
 
     public void run() {
         try {
+            warmUp();
             threadLatch.countDown();
             threadLatch.await();
             beforeRunTask();
@@ -100,7 +101,14 @@ public class SimperfThread implements Runnable {
     }
 
     /**
-     * 执行runTask()之前调用，只执行一次
+     * 线程预热，与 {@link #beforeRunTask()} 的不同点是 warmUp() 在阀门打开之前执行，会同步等待其它线程全部执行完毕
+     */
+    public void warmUp() {
+
+    }
+
+    /**
+     * 执行runTask()之前调用，只执行一次，在阀门打开之后执行，线程不同步等待
      */
     public void beforeRunTask() {
 
