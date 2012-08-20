@@ -31,7 +31,7 @@ public class SimperfThread implements Runnable {
             threadLatch.countDown();
             threadLatch.await();
             beforeRunTask();
-            statistics.startTime = System.currentTimeMillis();
+            statistics.startTime = statistics.endTime = System.currentTimeMillis();
             while (transCount > 0) {
                 Object obj = beforeInvoke();
                 boolean result = runTask();
