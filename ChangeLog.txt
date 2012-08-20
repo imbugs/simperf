@@ -2,6 +2,8 @@ TODO:
 V1.0.2
 结果分析器
 Change: 修改线程结构，使之更合理
+New Feature: 添加日志模块
+New Feature: 添加文件操作工具
 New Feature: 添加JSON格式输出
 ==================
 V1.0.1
