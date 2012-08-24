@@ -28,7 +28,8 @@ public class PrintStatus extends Thread {
     private long             endTime    = 0;
 
     private FileWriter       fw         = null;
-    private SimpleDateFormat sdf        = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+    // 时间格式化，例如：new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+    private SimpleDateFormat dateFormat = null;
     // 上一次记录
     private DataStatistics   lastData   = new DataStatistics();
 
@@ -39,7 +40,7 @@ public class PrintStatus extends Thread {
      */
     private List<Callback>   beforeExit = new ArrayList<Callback>();
 
-    String                   msgFormat  = "{time:'%s' ,avgTps:%s ,count:%d ,duration:%d ,fail:%d ,tTps:%s ,tCount:%d ,tDuration:%d ,tFail:%d}\n";
+    private String           msgFormat  = "{time:%s ,avgTps:%s ,count:%d ,duration:%d ,fail:%d ,tTps:%s ,tCount:%d ,tDuration:%d ,tFail:%d}\n";
 
     public PrintStatus(SimperfThread[] threads, ExecutorService threadPool, int interval) {
         this.threads = threads;
@@ -104,7 +105,10 @@ public class PrintStatus extends Thread {
         long count = allCalc.failCount + allCalc.successCount;
         String avgTps = SimperfUtil.divide(count * 1000, duration);
 
-        String now = sdf.format(new Date());
+        String now = String.valueOf(System.currentTimeMillis());
+        if (null != dateFormat) {
+            now = dateFormat.format(new Date());
+        }
 
         String msg;
 
@@ -169,5 +173,13 @@ public class PrintStatus extends Thread {
 
     public void setMsgFormat(String msgFormat) {
         this.msgFormat = msgFormat;
+    }
+
+    public SimpleDateFormat getDateFormat() {
+        return dateFormat;
+    }
+
+    public void setDateFormat(SimpleDateFormat dateFormat) {
+        this.dateFormat = dateFormat;
     }
 }
