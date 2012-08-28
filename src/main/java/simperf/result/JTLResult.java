@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import simperf.config.Constant;
 import simperf.thread.Callback;
 import simperf.thread.PrintStatus;
 
@@ -13,7 +14,7 @@ import simperf.thread.PrintStatus;
  * @author imbugs
  */
 public class JTLResult extends Thread {
-    private String                   fileName  = "simperf.jtl";
+    private String                   fileName  = Constant.DEFAULT_JTL_FILE;
     private FileWriter               fw        = null;
     private BlockingQueue<JTLRecord> jtlRecord = new LinkedBlockingQueue<JTLRecord>();
     // 把本线程的结束回调注册到监控线程上

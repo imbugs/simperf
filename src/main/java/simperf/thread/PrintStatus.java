@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+import simperf.config.Constant;
 import simperf.result.DataStatistics;
 import simperf.util.SimperfUtil;
 
@@ -33,7 +34,7 @@ public class PrintStatus extends Thread {
     // 上一次记录
     private DataStatistics   lastData   = new DataStatistics();
 
-    private String           logFile    = "simperf-result.log";
+    private String           logFile    = Constant.DEFAULT_RESULT_LOG;
 
     /**
      * 程序退出之前需要执行的代码
@@ -82,7 +83,6 @@ public class PrintStatus extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.exit(0);
     }
 
     public void outputMessage() {
