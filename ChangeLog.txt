@@ -1,10 +1,13 @@
 TODO:
+V1.0.3
+New Feature: 添加JUnit4的支持，可以直接在JUnit4测试用例基础上使用注解来进行测试
+==================
 V1.0.2
-结果分析器
 Change: 修改线程结构，使之更合理
 New Feature: 添加日志模块
 New Feature: 添加文件操作工具
 New Feature: 添加JSON格式输出
+New Feature: perfanalyzer中添加perl脚本，对simperf的json输出进行分析
 ==================
 V1.0.1
 New Feature: 支持输出JTL结果(包含每个请求的响应时间)
