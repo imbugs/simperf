@@ -1,6 +1,7 @@
 TODO:
 V1.0.3
 New Feature: 添加JUnit4的支持，可以直接在JUnit4测试用例基础上使用注解来进行测试
+New Feature: simperf添加自身注解的支持，可以在JUnit4测试用例上更灵活的使用simperf
 ==================
 V1.0.2
 Change: 修改线程结构，使之更合理
