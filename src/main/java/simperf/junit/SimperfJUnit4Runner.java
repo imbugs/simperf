@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.internal.runners.InitializationError;
 import org.junit.internal.runners.JUnit4ClassRunner;
+import org.junit.internal.runners.TestClass;
 import org.junit.internal.runners.TestMethod;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
@@ -25,11 +26,15 @@ public class SimperfJUnit4Runner extends JUnit4ClassRunner {
 
     public SimperfJUnit4Runner(Class<?> klass) throws InitializationError {
         super(klass);
+        SimperfMethodValidator methodValidator = new SimperfMethodValidator(getTestClass());
+        methodValidator.validateMethodsForDefaultRunner();
+        methodValidator.assertValid();
     }
 
     @Override
     protected void invokeTestMethod(Method method, RunNotifier notifier) {
-        simperf.junit.Simperf simperfConfig = method.getAnnotation(simperf.junit.Simperf.class);
+        simperf.annotations.Simperf simperfConfig = method
+            .getAnnotation(simperf.annotations.Simperf.class);
         if (null == simperfConfig) {
             super.invokeTestMethod(method, notifier);
         } else {
@@ -55,8 +60,11 @@ public class SimperfJUnit4Runner extends JUnit4ClassRunner {
                 SimperfConfig.setConfig(SimperfConfig.JTL_RESULT, jtlResult);
             }
             TestMethod testMethod = wrapMethod(method);
-            new SimperfMethodRoadie(simperf, test, testMethod, notifier, description).run();
+            new SimperfMethodRoadie(this, simperf, test, testMethod, notifier, description).run();
         }
     }
 
+    public TestClass getTestClass() {
+        return super.getTestClass();
+    }
 }

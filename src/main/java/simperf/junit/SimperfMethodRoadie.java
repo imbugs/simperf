@@ -18,24 +18,26 @@ import simperf.thread.SimperfThreadFactory;
  * @author imbugs
  */
 public class SimperfMethodRoadie extends MethodRoadie {
-    protected Simperf           simperf;
-    protected final Object      fTest;
-    protected final RunNotifier fNotifier;
-    protected final Description fDescription;
-    protected TestMethod        fTestMethod;
-    protected CountDownLatch    latch = new CountDownLatch(1);
+    protected Simperf                   simperf;
+    protected final Object              fTest;
+    protected final RunNotifier         fNotifier;
+    protected final Description         fDescription;
+    protected final TestMethod          fTestMethod;
+    protected final SimperfJUnit4Runner fRunner;
+    protected CountDownLatch            latch = new CountDownLatch(1);
 
-    public SimperfMethodRoadie(Simperf simperf, Object test, TestMethod method,
-                               RunNotifier notifier, Description description) {
+    public SimperfMethodRoadie(SimperfJUnit4Runner simperfRunner, Simperf simperf, Object test,
+                               TestMethod method, RunNotifier notifier, Description description) {
         super(test, method, notifier, description);
         this.simperf = simperf;
         this.fTest = test;
         this.fNotifier = notifier;
         this.fDescription = description;
         this.fTestMethod = method;
+        this.fRunner = simperfRunner;
         this.simperf.setThreadFactory(new SimperfThreadFactory() {
             public SimperfThread newThread() {
-                return new SimperfJunit4Thread(fTest, fTestMethod);
+                return new SimperfJunit4Thread(fRunner, fTest, fTestMethod);
             }
         });
         this.simperf.getPrintThread().registerCallback(new Callback() {

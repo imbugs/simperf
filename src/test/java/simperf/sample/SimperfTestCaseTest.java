@@ -1,44 +1,74 @@
 package simperf.sample;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
+
 import junit.framework.Assert;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import simperf.junit.Simperf;
+import simperf.annotations.AfterInvoke;
+import simperf.annotations.AfterRunTask;
+import simperf.annotations.BeforeInvoke;
+import simperf.annotations.BeforeRunTask;
+import simperf.annotations.Simperf;
+import simperf.annotations.WarmUp;
 import simperf.junit.SimperfTestCase;
 
 public class SimperfTestCaseTest extends SimperfTestCase {
-    @BeforeClass
-    public static void beforeClass() {
-        System.out.println("SimperfTestCaseTest.beforeClass()");
-    }
-
-    @AfterClass
-    public static void afterClass() {
-        System.out.println("SimperfTestCaseTest.afterClass()");
-    }
+    private SimpleDateFormat sdf;
+    private Random           rand;
 
     @Before
     public void before() {
-        System.out.println("SimperfTestCaseTest.before()");
+        sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+        rand = new Random();
+        System.out.println(Thread.currentThread().getId() + "SimperfTestCaseTest.before()");
     }
 
     @After
     public void after() {
-        System.out.println("SimperfTestCaseTest.after()");
+        System.out.println(Thread.currentThread().getId() + "SimperfTestCaseTest.after()");
+    }
+
+    @BeforeInvoke
+    public void beforeInvoke() {
+        System.out.println(Thread.currentThread().getId() + "SimperfTestCaseTest.beforeInvoke()");
+    }
+
+    @AfterInvoke
+    public void afterInvoke() {
+        System.out.println(Thread.currentThread().getId() + "SimperfTestCaseTest.afterInvoke()");
+    }
+
+    @BeforeRunTask
+    public void beforeRunTask() {
+        System.out.println(Thread.currentThread().getId() + "SimperfTestCaseTest.beforeRunTask()");
+    }
+
+    @AfterRunTask
+    public void afterRunTask() {
+        System.out.println(Thread.currentThread().getId() + "SimperfTestCaseTest.afterRunTask()");
+    }
+
+    @WarmUp
+    public void warmUp() {
+        System.out.println(Thread.currentThread().getId() + "SimperfTestCaseTest.warmUp()");
     }
 
     @Test
-    @Simperf(thread = 10, count = 100, interval = 1000)
+    @Simperf(thread = 2, count = 2, interval = 1000)
     public void testXxx() {
         try {
             Thread.sleep(100);
         } catch (Exception e) {
         }
-        Assert.assertTrue(false);
+        sdf.format(new Date());
+        boolean result = rand.nextInt(10) > 1;
+        System.out.println(Thread.currentThread().getId() + "==================");
+        Assert.assertTrue("xxxx", result);
     }
 }
