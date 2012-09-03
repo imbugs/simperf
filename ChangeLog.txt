@@ -2,6 +2,7 @@ TODO:
 动态修改并发量
 添加Step控制类
 在SimperfConfig中添加自定义睡眠时间
+引入log4j
 ==================
 V1.0.3
 New Feature: 添加JUnit4的支持，可以直接在JUnit4测试用例基础上使用注解来进行测试
