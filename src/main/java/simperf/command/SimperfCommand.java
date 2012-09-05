@@ -59,7 +59,7 @@ public class SimperfCommand {
 
         if (cmd.hasOption("j")) {
             String jtlFile = cmd.getOptionValue("j");
-            JTLResult jtlResult = new JTLResult(jtlFile, simperf.getPrintThread());
+            JTLResult jtlResult = new JTLResult(jtlFile, simperf.getMonitorThread());
             SimperfConfig.setConfig(SimperfConfig.JTL_RESULT, jtlResult);
         }
 
@@ -69,7 +69,7 @@ public class SimperfCommand {
         }
         if (cmd.hasOption("l")) {
             String logFile = cmd.getOptionValue("l");
-            simperf.getPrintThread().setLogFile(logFile);
+            simperf.getMonitorThread().setLogFile(logFile);
         }
 
         return simperf;

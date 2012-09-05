@@ -4,7 +4,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import simperf.thread.PrintStatus;
+import simperf.thread.MonitorThread;
 import simperf.thread.SimperfThread;
 import simperf.thread.SimperfThreadFactory;
 
@@ -20,7 +20,7 @@ import simperf.thread.SimperfThreadFactory;
  *            }
  *       });
  * <i>// 设置结果输出文件，默认 simperf-result.log</i>
- * perf.getPrintThread().setLogFile("simperf.log");
+ * perf.getMonitorThread().setLogFile("simperf.log");
  * <i>// 开始性能测试</i>
  * perf.start();
  * </pre>
@@ -33,7 +33,7 @@ public class Simperf {
     private int                  interval       = 1000;
     private long                 maxTps         = -1;
     private SimperfThreadFactory threadFactory  = null;
-    private PrintStatus          printThread    = null;
+    private MonitorThread        monitorThread  = null;
 
     private ExecutorService      threadPool     = null;
     private CountDownLatch       threadLatch    = null;
@@ -96,16 +96,16 @@ public class Simperf {
         threadPool.shutdown();
         startInfo = "{StartInfo: {THREAD_POOL_SIZE:" + threadPoolSize + ",LOOP_COUNT:" + loopCount
                     + ",INTERVAL:" + interval + "}, ExtInfo: " + extInfo + "}";
-        printThread.write(startInfo + "\n");
-        printThread.start();
+        monitorThread.write(startInfo + "\n");
+        monitorThread.start();
     }
 
     protected void initThreadPool() {
         threads = new SimperfThread[threadPoolSize];
         threadPool = Executors.newFixedThreadPool(threadPoolSize);
         threadLatch = new CountDownLatch(threadPoolSize);
-        if (null == printThread) {
-            printThread = new PrintStatus(threads, threadPool, interval);
+        if (null == monitorThread) {
+            monitorThread = new MonitorThread(threads, threadPool, interval);
         }
     }
 
@@ -127,8 +127,8 @@ public class Simperf {
 
     public void setInterval(int interval) {
         this.interval = interval;
-        if (printThread != null) {
-            printThread.setInterval(interval);
+        if (monitorThread != null) {
+            monitorThread.setInterval(interval);
         }
     }
 
@@ -140,12 +140,12 @@ public class Simperf {
         this.threadFactory = threadFactory;
     }
 
-    public PrintStatus getPrintThread() {
-        return printThread;
+    public MonitorThread getMonitorThread() {
+        return monitorThread;
     }
 
-    public void setPrintThread(PrintStatus printThread) {
-        this.printThread = printThread;
+    public void setMonitorThread(MonitorThread monitorThread) {
+        this.monitorThread = monitorThread;
     }
 
     public CountDownLatch getThreadLatch() {

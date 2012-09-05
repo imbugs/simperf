@@ -6,8 +6,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import simperf.config.Constant;
-import simperf.thread.Callback;
-import simperf.thread.PrintStatus;
+import simperf.thread.DefaultCallback;
+import simperf.thread.MonitorThread;
 
 /**
  * 输出JTL结果
@@ -18,15 +18,15 @@ public class JTLResult extends Thread {
     private FileWriter               fw        = null;
     private BlockingQueue<JTLRecord> jtlRecord = new LinkedBlockingQueue<JTLRecord>();
     // 把本线程的结束回调注册到监控线程上
-    private PrintStatus              statusThread;
+    private MonitorThread            statusThread;
 
-    public JTLResult(String fileName, PrintStatus statusThread) {
+    public JTLResult(String fileName, MonitorThread statusThread) {
         this.fileName = fileName;
         this.statusThread = statusThread;
         init();
     }
 
-    public JTLResult(PrintStatus statusThread) {
+    public JTLResult(MonitorThread statusThread) {
         this.statusThread = statusThread;
         init();
     }
@@ -40,13 +40,13 @@ public class JTLResult extends Thread {
 
         this.start();
         // 注册回调函数，监控线程退出之前需要先结束本线程
-        this.statusThread.registerCallback(new Callback() {
-            public void run(PrintStatus ps) {
+        this.statusThread.registerCallback(new DefaultCallback() {
+            public void onExit(MonitorThread ps) {
                 // 终止本线程的时候，所有threadPool中的线程已经终止了
                 JTLResult.this.interrupt();
                 while (JTLResult.this.isAlive()) {
                     try {
-                        Thread.sleep(100);
+                        JTLResult.this.join();
                     } catch (Exception e) {
                     }
                 }

@@ -8,8 +8,8 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 
 import simperf.Simperf;
-import simperf.thread.Callback;
-import simperf.thread.PrintStatus;
+import simperf.thread.DefaultCallback;
+import simperf.thread.MonitorThread;
 import simperf.thread.SimperfThread;
 import simperf.thread.SimperfThreadFactory;
 
@@ -40,8 +40,8 @@ public class SimperfMethodRoadie extends MethodRoadie {
                 return new SimperfJunit4Thread(fRunner, fTest, fTestMethod);
             }
         });
-        this.simperf.getPrintThread().registerCallback(new Callback() {
-            public void run(PrintStatus pstatus) {
+        this.simperf.getMonitorThread().registerCallback(new DefaultCallback() {
+            public void onExit(MonitorThread pstatus) {
                 latch.countDown();
             }
         });

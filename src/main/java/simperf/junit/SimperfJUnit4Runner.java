@@ -53,10 +53,10 @@ public class SimperfJUnit4Runner extends JUnit4ClassRunner {
             Simperf simperf = new Simperf(simperfConfig.thread(), simperfConfig.count(),
                 simperfConfig.interval());
             simperf.setMaxTps(simperfConfig.maxTps());
-            simperf.getPrintThread().setLogFile(simperfConfig.logFile());
+            simperf.getMonitorThread().setLogFile(simperfConfig.logFile());
             if (simperfConfig.jtl()) {
                 JTLResult jtlResult = new JTLResult(simperfConfig.jtlFile(),
-                    simperf.getPrintThread());
+                    simperf.getMonitorThread());
                 SimperfConfig.setConfig(SimperfConfig.JTL_RESULT, jtlResult);
             }
             TestMethod testMethod = wrapMethod(method);

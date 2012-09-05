@@ -14,10 +14,10 @@ public class SimperfTest {
 
         Simperf perf = new Simperf(10, 10);
         perf.setMaxTps(5);
-        perf.getPrintThread().setLogFile("xxx.log");
+        perf.getMonitorThread().setLogFile("xxx.log");
 
         // 打印JTL日志，会有一些性能损耗
-        //JTLResult jtl = new JTLResult(perf.getPrintThread());
+        //JTLResult jtl = new JTLResult(perf.getMonitorThread());
         //SimperfConfig.setConfig(SimperfConfig.JTL_RESULT, jtl);
 
         perf.start(new SimperfThreadFactory() {

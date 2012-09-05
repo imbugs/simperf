@@ -60,10 +60,10 @@ public class SimperfTestCaseTest extends SimperfTestCase {
     }
 
     @Test
-    @Simperf(thread = 2, count = 2, interval = 1000)
+    @Simperf(thread = 2, count = 5, interval = 1000)
     public void testXxx() {
         try {
-            Thread.sleep(100);
+            Thread.sleep(1000);
         } catch (Exception e) {
         }
         sdf.format(new Date());

@@ -12,7 +12,7 @@ Simperf 是一个简单的性能测试工具，它提供了一个多线程测试
             }
        });
  // 设置结果输出文件，默认 simperf-result.log
- perf.getPrintThread().setLogFile("simperf.log");
+ perf.getMonitorThread().setLogFile("simperf.log");
  // 开始性能测试
  perf.start();
  </pre>
