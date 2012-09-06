@@ -45,7 +45,7 @@ usage: SimperfCommand options
  -m,--maxtps <arg>     [ ] max tps
  -t,--thread <arg>     [*] number of thread count
 </pre>
-3. 在Junit里使用Simperf
+3. 在Junit4里使用Simperf
 <pre>
 public class SimperfTestCaseTest extends SimperfTestCase {
     private Random              rand;
