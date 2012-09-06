@@ -18,6 +18,7 @@ import simperf.annotations.BeforeInvoke;
 import simperf.annotations.BeforeRunTask;
 import simperf.annotations.Simperf;
 import simperf.annotations.WarmUp;
+import simperf.controllers.TimeSteppingThreadTrigger;
 import simperf.junit.SimperfTestCase;
 
 public class SimperfTestCaseTest extends SimperfTestCase {
@@ -28,39 +29,41 @@ public class SimperfTestCaseTest extends SimperfTestCase {
 
     @Before
     public void before() {
+        TimeSteppingThreadTrigger t = new TimeSteppingThreadTrigger(2000, 2);
+        t.startWork(simperf);
         sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
         rand = new Random();
-        logger.info(Thread.currentThread().getId() + "SimperfTestCaseTest.before()");
+        logger.debug(Thread.currentThread().getId() + "SimperfTestCaseTest.before()");
     }
 
     @After
     public void after() {
-        logger.info(Thread.currentThread().getId() + "SimperfTestCaseTest.after()");
+        logger.debug(Thread.currentThread().getId() + "SimperfTestCaseTest.after()");
     }
 
     @BeforeInvoke
     public void beforeInvoke() {
-        logger.info(Thread.currentThread().getId() + "SimperfTestCaseTest.beforeInvoke()");
+        logger.debug(Thread.currentThread().getId() + "SimperfTestCaseTest.beforeInvoke()");
     }
 
     @AfterInvoke
     public void afterInvoke() {
-        logger.info(Thread.currentThread().getId() + "SimperfTestCaseTest.afterInvoke()");
+        logger.debug(Thread.currentThread().getId() + "SimperfTestCaseTest.afterInvoke()");
     }
 
     @BeforeRunTask
     public void beforeRunTask() {
-        logger.info(Thread.currentThread().getId() + "SimperfTestCaseTest.beforeRunTask()");
+        logger.debug(Thread.currentThread().getId() + "SimperfTestCaseTest.beforeRunTask()");
     }
 
     @AfterRunTask
     public void afterRunTask() {
-        logger.info(Thread.currentThread().getId() + "SimperfTestCaseTest.afterRunTask()");
+        logger.debug(Thread.currentThread().getId() + "SimperfTestCaseTest.afterRunTask()");
     }
 
     @WarmUp
     public void warmUp() {
-        logger.info(Thread.currentThread().getId() + "SimperfTestCaseTest.warmUp()");
+        logger.debug(Thread.currentThread().getId() + "SimperfTestCaseTest.warmUp()");
     }
 
     @Test
@@ -72,7 +75,7 @@ public class SimperfTestCaseTest extends SimperfTestCase {
         }
         sdf.format(new Date());
         boolean result = rand.nextInt(10) > 1;
-        logger.info(Thread.currentThread().getId() + "==================");
+        logger.debug(Thread.currentThread().getId() + "==================");
         Assert.assertTrue("xxxx", result);
     }
 }

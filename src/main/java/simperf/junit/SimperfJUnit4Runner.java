@@ -1,5 +1,6 @@
 package simperf.junit;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 
 import simperf.Simperf;
+import simperf.annotations.Inject;
 import simperf.config.SimperfConfig;
 import simperf.result.JTLResult;
 
@@ -52,6 +54,7 @@ public class SimperfJUnit4Runner extends JUnit4ClassRunner {
 
             Simperf simperf = new Simperf(simperfConfig.thread(), simperfConfig.count(),
                 simperfConfig.interval());
+            injectVariable(test, simperf, Simperf.class);
             simperf.setMaxTps(simperfConfig.maxTps());
             simperf.getMonitorThread().setLogFile(simperfConfig.logFile());
             if (simperfConfig.jtl()) {
@@ -64,7 +67,32 @@ public class SimperfJUnit4Runner extends JUnit4ClassRunner {
         }
     }
 
+    protected void injectVariable(Object obj, Object value, Class<?> cls) {
+        try {
+            Class<?> klass = super.getTestClass().getJavaClass();
+            do {
+                Field[] fields = klass.getDeclaredFields();
+                if (null != fields) {
+                    for (Field field : fields) {
+                        if (field.isAnnotationPresent(Inject.class)) {
+                            if (field.getType().isAssignableFrom(cls)) {
+                                field.setAccessible(true);
+                                field.set(obj, value);
+                            }
+                        }
+                    }
+                }
+                klass = klass.getSuperclass();
+            } while (!klass.isAssignableFrom(Object.class));
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
     public TestClass getTestClass() {
         return super.getTestClass();
     }
+
 }
