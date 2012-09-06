@@ -33,7 +33,7 @@ public class FileOperateUtils {
             fw.write(contents);
             fw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("写文件异常", e);
         }
     }
 
@@ -65,7 +65,7 @@ public class FileOperateUtils {
                 fw.close();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("写文件异常", e);
         }
     }
 

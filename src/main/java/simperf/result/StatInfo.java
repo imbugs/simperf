@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import simperf.config.Constant;
 
 /**
@@ -12,59 +15,61 @@ import simperf.config.Constant;
  * @author imbugs
  */
 public class StatInfo {
+    private static final Logger logger     = LoggerFactory.getLogger(StatInfo.class);
+
     /**
      * 输出消息格式化
      */
-    private String           msgFormat  = Constant.DEFAULT_MSG_FORMAT;
+    private String              msgFormat  = Constant.DEFAULT_MSG_FORMAT;
     /**
      * 时间格式化，例如：new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
      */
-    private SimpleDateFormat dateFormat = Constant.DEFAULT_DATE_FORMAT;
+    private SimpleDateFormat    dateFormat = Constant.DEFAULT_DATE_FORMAT;
 
     /**
      * 本记录统计的时间
      */
-    public long              time;
+    public long                 time;
 
     /**
      * 平均TPS
      */
-    public String            avgTps;
+    public String               avgTps;
 
     /**
      * 发送总计数
      */
-    public long              count;
+    public long                 count;
 
     /**
      * 发送总耗时
      */
-    public long              duration;
+    public long                 duration;
 
     /**
      * 发送失败数
      */
-    public long              fail;
+    public long                 fail;
 
     /**
      * 当前时间段TPS
      */
-    public String            tTps;
+    public String               tTps;
 
     /**
      * 当前时间段计数
      */
-    public long              tCount;
+    public long                 tCount;
 
     /**
      * 当前时间段耗时
      */
-    public long              tDuration;
+    public long                 tDuration;
 
     /**
      * 当前时间段失败数
      */
-    public long              tFail;
+    public long                 tFail;
 
     public StatInfo() {
     }
@@ -90,7 +95,7 @@ public class StatInfo {
         try {
             fw.write(this.toString());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("写文件异常", e);
         }
     }
 
@@ -101,13 +106,8 @@ public class StatInfo {
         try {
             os.write(this.toString().getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("写文件异常", e);
         }
-    }
-
-    public static void main(String[] args) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
-        System.out.println(sdf.format(System.currentTimeMillis()));
     }
 
     public String getMsgFormat() {

@@ -1,10 +1,13 @@
 package simperf.thread;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import simperf.config.Constant;
 import simperf.result.DataStatistics;
@@ -14,61 +17,91 @@ import simperf.result.StatInfo;
 import simperf.util.SimperfUtil;
 
 /**
- * 打印统计线程
+ * 监控统计线程
  * @author imbugs
  */
 public class MonitorThread extends Thread {
-    // simperf执行线程
-    private SimperfThread[] threads;
-    // 线程池
-    private ExecutorService threadPool;
-    // 监控周期
-    private int             interval;
-    // 最早一次发送的时间
-    private long            earlyTime  = 0;
-    // 最后一次发送时间
-    private long            endTime    = 0;
-    // 上一次记录
-    private DataStatistics  lastData   = new DataStatistics();
+    private static final Logger  logger                = LoggerFactory
+                                                           .getLogger(MonitorThread.class);
 
-    private String          logFile    = Constant.DEFAULT_RESULT_LOG;
+    // simperf执行线程
+    private List<SimperfThread>  threads;
+    // 已经死掉的线程，统计上还需要这些数据
+    private List<SimperfThread>  dieThreads;
+    // 线程池
+    private ExecutorService      threadPool;
+    // 监控周期
+    private int                  interval;
+    // 最早一次发送的时间
+    private long                 earlyTime             = 0;
+    // 最后一次发送时间
+    private long                 endTime               = 0;
+    // 上一次记录
+    private DataStatistics       lastData              = new DataStatistics();
 
     /**
      * 回调函数
      */
-    private List<Callback>  callbacks  = new ArrayList<Callback>();
+    private List<Callback>       callbacks             = new ArrayList<Callback>();
 
     /**
      * 一些消息
      */
-    private List<String>    messages   = new ArrayList<String>();
+    private List<String>         messages              = new ArrayList<String>();
 
-    public MonitorThread(SimperfThread[] threads, ExecutorService threadPool, int interval) {
+    /**
+     * 线程调整锁，统计时不能进行线程调整
+     */
+    private ReentrantLock        adjustThreadLock      = null;
+
+    // 默认的控制台输出
+    private DefaultCallback      defaultConsolePrinter = new DefaultConsolePrinter();
+    // 默认的日志文件输出
+    private DefaultLogFileWriter defaultLogFileWriter  = new DefaultLogFileWriter(
+                                                           Constant.DEFAULT_RESULT_LOG);
+
+    public MonitorThread(List<SimperfThread> threads, ExecutorService threadPool, int interval) {
         this.threads = threads;
         this.threadPool = threadPool;
         this.interval = interval;
-    }
-
-    /**
-     * run之前进行默认的初始化设置，添加Console及File输出
-     */
-    protected void doInit() {
-        this.registerCallback(new DefaultConsolePrinter());
-        this.registerCallback(new DefaultLogFileWriter(logFile));
+        this.registerCallback(defaultConsolePrinter);
+        this.registerCallback(defaultLogFileWriter);
     }
 
     public void run() {
-        doInit();
         doStart();
         do {
-            try {
-                Thread.sleep(interval);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            SimperfUtil.sleep(interval);
             doMonitor();
-        } while (!threadPool.isTerminated());
+        } while (!isFinish());
+        try {
+            threadPool.shutdown();
+            threadPool.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.error("线程被异常打断", e);
+        }
         doExit();
+    }
+
+    public boolean isFinish() {
+        if (threadPool.isTerminated()) {
+            return true;
+        }
+        boolean finish = true;
+        if (adjustThreadLock != null) {
+            adjustThreadLock.lock();
+        }
+        int length = threads.size();
+        for (int i = 0; i < length; i++) {
+            if (threads.get(i).isAlive()) {
+                finish = false;
+                break;
+            }
+        }
+        if (adjustThreadLock != null) {
+            adjustThreadLock.unlock();
+        }
+        return finish;
     }
 
     public void doStart() {
@@ -93,20 +126,32 @@ public class MonitorThread extends Thread {
      */
     public StatInfo getStatInfo() {
         StatInfo statInfo = new StatInfo();
+        if (adjustThreadLock != null) {
+            adjustThreadLock.lock();
+        }
+        List<SimperfThread> allThreads = new ArrayList<SimperfThread>();
+        allThreads.addAll(threads);
+        if (dieThreads != null) {
+            allThreads.addAll(dieThreads);
+        }
         // 获取当前统计数据
-        if (earlyTime <= 0 && threads.length > 0) {
-            earlyTime = threads[0].getStatistics().startTime;
-            for (int i = 1; i < threads.length; i++) {
-                long t = threads[i].getStatistics().startTime;
+        int length = allThreads.size();
+        if (earlyTime <= 0 && length > 0) {
+            earlyTime = allThreads.get(0).getStatistics().startTime;
+            for (int i = 1; i < length; i++) {
+                long t = allThreads.get(i).getStatistics().startTime;
                 earlyTime = earlyTime > t ? t : earlyTime;
             }
         }
         DataStatistics allCalc = new DataStatistics();
-        for (int i = 0; i < threads.length; i++) {
-            DataStatistics data = threads[i].getStatistics();
+        for (int i = 0; i < length; i++) {
+            DataStatistics data = allThreads.get(i).getStatistics();
             allCalc.failCount += data.failCount;
             allCalc.successCount += data.successCount;
             endTime = endTime > data.endTime ? endTime : data.endTime;
+        }
+        if (adjustThreadLock != null) {
+            adjustThreadLock.unlock();
         }
         // 计算统计信息
         statInfo.count = allCalc.failCount + allCalc.successCount;
@@ -164,12 +209,8 @@ public class MonitorThread extends Thread {
         this.callbacks.clear();
     }
 
-    public String getLogFile() {
-        return logFile;
-    }
-
     public void setLogFile(String logFile) {
-        this.logFile = logFile;
+        this.defaultLogFileWriter.setLogFile(logFile);
     }
 
     public int getInterval() {
@@ -186,5 +227,25 @@ public class MonitorThread extends Thread {
 
     public void write(String message) {
         this.messages.add(message);
+    }
+
+    public ReentrantLock getAdjustThreadLock() {
+        return adjustThreadLock;
+    }
+
+    public void setAdjustThreadLock(ReentrantLock adjustThreadLock) {
+        this.adjustThreadLock = adjustThreadLock;
+    }
+
+    public List<SimperfThread> getThreads() {
+        return threads;
+    }
+
+    public List<SimperfThread> getDieThreads() {
+        return dieThreads;
+    }
+
+    public void setDieThreads(List<SimperfThread> dieThreads) {
+        this.dieThreads = dieThreads;
     }
 }

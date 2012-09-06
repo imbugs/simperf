@@ -1,10 +1,10 @@
 TODO:
-动态修改并发量
-添加Step控制类
-在SimperfConfig中添加自定义睡眠时间
-引入log4j
+
 ==================
 V1.0.4
+New Feature: 添加线程步进(SteppingThread)控制类
+New Feature: 引入slf4j打印日志
+New Feature: 动态修改并发量
 New Feature: 添加Console, File, SQL 三种默认的结果输出类
 Change: 将PrintStatus改为MonitorThread(监控线程)，并进行重构与完善
 Change: TPS结果支持自定义，默认精确到2位小数

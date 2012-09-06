@@ -1,4 +1,5 @@
 package simperf.sample;
+
 import simperf.thread.SimperfThread;
 
 public class SendMessageThread extends SimperfThread {
@@ -8,7 +9,6 @@ public class SendMessageThread extends SimperfThread {
     public boolean runTask() {
         return sender.send();
     }
-
 
     public void setSender(MessageSender sender) {
         this.sender = sender;

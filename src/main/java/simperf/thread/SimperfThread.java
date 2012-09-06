@@ -2,29 +2,40 @@ package simperf.thread;
 
 import java.util.concurrent.CountDownLatch;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import simperf.config.SimperfConfig;
 import simperf.result.DataStatistics;
 import simperf.result.JTLRecord;
 import simperf.result.JTLResult;
+import simperf.util.SimperfUtil;
 
 /**
  * 任务线程
  * @author imbugs
  */
 public class SimperfThread implements Runnable {
+    private static final Logger logger        = LoggerFactory.getLogger(SimperfThread.class);
 
-    protected long           transCount    = 0;
-    protected DataStatistics statistics    = new DataStatistics();
-    protected CountDownLatch threadLatch;
+    protected long              transCount    = 0;
+    protected DataStatistics    statistics    = new DataStatistics();
+    protected CountDownLatch    threadLatch;
 
     /**
      * 限速设置
      */
-    protected long           maxTps        = -1;
+    protected long              maxTps        = -1;
     /**
      * 记录超限次数，用以平衡速度
      */
-    protected long           overflowCount = 1;
+    protected long              overflowCount = 1;
+    protected long              countIndex    = 0;
+    /**
+     * 判断当前线程是否还存活
+     */
+    protected boolean           alive         = true;
+    protected boolean           todie         = false;
 
     public void run() {
         try {
@@ -33,7 +44,7 @@ public class SimperfThread implements Runnable {
             threadLatch.await();
             beforeRunTask();
             statistics.startTime = statistics.endTime = System.currentTimeMillis();
-            while (transCount > 0) {
+            while (countIndex < transCount && !todie) {
                 Object obj = beforeInvoke();
                 boolean result = runTask();
                 if (result) {
@@ -41,7 +52,7 @@ public class SimperfThread implements Runnable {
                 } else {
                     statistics.failCount++;
                 }
-                transCount--;
+                countIndex++;
                 statistics.endTime = System.currentTimeMillis();
                 if (maxTps > 0) {
                     // 休眠一定时间，达到指定TPS
@@ -54,8 +65,9 @@ public class SimperfThread implements Runnable {
             }
             afterRunTask();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.error("线程被异常打断", e);
         }
+        alive = false;
     }
 
     protected void afterInvoke(boolean result, Object beforeInvokeResult) {
@@ -104,7 +116,6 @@ public class SimperfThread implements Runnable {
      * 线程预热，与 {@link #beforeRunTask()} 的不同点是 warmUp() 在阀门打开之前执行，会同步等待其它线程全部执行完毕
      */
     public void warmUp() {
-
     }
 
     /**
@@ -122,11 +133,7 @@ public class SimperfThread implements Runnable {
     }
 
     public boolean runTask() {
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        SimperfUtil.sleep(10);
         return false;
     }
 
@@ -156,5 +163,21 @@ public class SimperfThread implements Runnable {
 
     public void setMaxTps(long maxTps) {
         this.maxTps = maxTps;
+    }
+
+    public long getCountIndex() {
+        return countIndex;
+    }
+
+    public void setCountIndex(long countIndex) {
+        this.countIndex = countIndex;
+    }
+
+    public void stop() {
+        todie = true;
+    }
+
+    public boolean isAlive() {
+        return alive;
     }
 }

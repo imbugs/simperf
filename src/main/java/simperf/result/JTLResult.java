@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import simperf.config.Constant;
 import simperf.thread.DefaultCallback;
 import simperf.thread.MonitorThread;
@@ -14,6 +17,8 @@ import simperf.thread.MonitorThread;
  * @author imbugs
  */
 public class JTLResult extends Thread {
+    private static final Logger      logger    = LoggerFactory.getLogger(JTLResult.class);
+
     private String                   fileName  = Constant.DEFAULT_JTL_FILE;
     private FileWriter               fw        = null;
     private BlockingQueue<JTLRecord> jtlRecord = new LinkedBlockingQueue<JTLRecord>();
@@ -35,7 +40,7 @@ public class JTLResult extends Thread {
         try {
             fw = new FileWriter(fileName, false);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("写文件异常", e);
         }
 
         this.start();
@@ -58,7 +63,7 @@ public class JTLResult extends Thread {
         try {
             jtlRecord.put(r);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.error("线程被异常打断", e);
         }
     }
 
@@ -98,7 +103,7 @@ public class JTLResult extends Thread {
                 fw.close();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("写文件异常", e);
         }
     }
 
