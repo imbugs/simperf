@@ -25,6 +25,10 @@ public class SimperfCommandTest {
 	public static void main(String[] args) {
 	    SimperfCommand simCommand = new SimperfCommand(args);
 	    Simperf perf = simCommand.create();
+		if (perf == null) {
+			// 参数解析失败时会返回null
+			System.exit(-1);
+		}
 	    perf.start(new SimperfThreadFactory() {
 	        public SimperfThread newThread() {
 	            return new SimperfThread();

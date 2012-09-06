@@ -33,11 +33,12 @@ public class AdjustThreadsTest {
         thread(perf, 15);
         thread(perf, 25);
         thread(perf, 10);
+        thread(perf, 5);
     }
 
     public static void thread(Simperf perf, int size) {
         try {
-            Thread.sleep(10000);
+            Thread.sleep(5000);
         } catch (InterruptedException e) {
             logger.error("", e);
         }

@@ -48,14 +48,19 @@ public class TimeSteppingThreadTrigger extends Thread implements SteppingThreadT
         if (maxThreads > 0 && currentThread >= maxThreads) {
             return;
         }
-        int adjustTo = currentThread + step;
-        if (maxThreads > 0 && adjustTo > maxThreads) {
-            adjustTo = maxThreads;
+        int adjust = step;
+        if (maxThreads > 0 && currentThread + step > maxThreads) {
+            adjust = maxThreads - currentThread;
         }
-        if (adjustTo <= 0) {
+        if (adjust == 0) {
             return;
         }
-        simperf.thread(adjustTo);
+        int dieCount = simperf.getDieThreadPoolSize();
+        if (dieCount > 0) {
+            logger.warn("已经有线程执行完毕，不再进行并发调整，当前线程数: " + currentThread + "，已结束线程：" + dieCount);
+            return;
+        }
+        simperf.adjustThread(adjust);
     }
 
     public int getTriggerInterval() {

@@ -2,13 +2,12 @@ package simperf.thread;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import simperf.Simperf;
 import simperf.config.Constant;
 import simperf.result.DataStatistics;
 import simperf.result.DefaultConsolePrinter;
@@ -24,12 +23,9 @@ public class MonitorThread extends Thread {
     private static final Logger  logger                = LoggerFactory
                                                            .getLogger(MonitorThread.class);
 
+    private Simperf              simperf;
     // simperf执行线程
     private List<SimperfThread>  threads;
-    // 已经死掉的线程，统计上还需要这些数据
-    private List<SimperfThread>  dieThreads;
-    // 线程池
-    private ExecutorService      threadPool;
     // 监控周期
     private int                  interval;
     // 最早一次发送的时间
@@ -49,21 +45,17 @@ public class MonitorThread extends Thread {
      */
     private List<String>         messages              = new ArrayList<String>();
 
-    /**
-     * 线程调整锁，统计时不能进行线程调整
-     */
-    private ReentrantLock        adjustThreadLock      = null;
-
     // 默认的控制台输出
     private DefaultCallback      defaultConsolePrinter = new DefaultConsolePrinter();
     // 默认的日志文件输出
     private DefaultLogFileWriter defaultLogFileWriter  = new DefaultLogFileWriter(
                                                            Constant.DEFAULT_RESULT_LOG);
 
-    public MonitorThread(List<SimperfThread> threads, ExecutorService threadPool, int interval) {
-        this.threads = threads;
-        this.threadPool = threadPool;
-        this.interval = interval;
+    public MonitorThread(Simperf simperf) {
+        this.simperf = simperf;
+        this.threads = simperf.getThreads();
+        this.interval = simperf.getInterval();
+
         this.registerCallback(defaultConsolePrinter);
         this.registerCallback(defaultLogFileWriter);
     }
@@ -75,8 +67,8 @@ public class MonitorThread extends Thread {
             doMonitor();
         } while (!isFinish());
         try {
-            threadPool.shutdown();
-            threadPool.awaitTermination(5, TimeUnit.SECONDS);
+            this.simperf.getThreadPool().shutdown();
+            this.simperf.getThreadPool().awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             logger.error("线程被异常打断", e);
         }
@@ -84,13 +76,11 @@ public class MonitorThread extends Thread {
     }
 
     public boolean isFinish() {
-        if (threadPool.isTerminated()) {
+        if (this.simperf.getThreadPool().isTerminated()) {
             return true;
         }
         boolean finish = true;
-        if (adjustThreadLock != null) {
-            adjustThreadLock.lock();
-        }
+        this.simperf.getAdjustThreadLock().lock();
         int length = threads.size();
         for (int i = 0; i < length; i++) {
             if (threads.get(i).isAlive()) {
@@ -98,9 +88,7 @@ public class MonitorThread extends Thread {
                 break;
             }
         }
-        if (adjustThreadLock != null) {
-            adjustThreadLock.unlock();
-        }
+        this.simperf.getAdjustThreadLock().unlock();
         return finish;
     }
 
@@ -126,13 +114,12 @@ public class MonitorThread extends Thread {
      */
     public StatInfo getStatInfo() {
         StatInfo statInfo = new StatInfo();
-        if (adjustThreadLock != null) {
-            adjustThreadLock.lock();
-        }
+        this.simperf.getAdjustThreadLock().lock();
         List<SimperfThread> allThreads = new ArrayList<SimperfThread>();
         allThreads.addAll(threads);
-        if (dieThreads != null) {
-            allThreads.addAll(dieThreads);
+        if (simperf.getDieThreads() != null) {
+            // 已经死掉的线程，统计上还需要这些数据
+            allThreads.addAll(simperf.getDieThreads());
         }
         // 获取当前统计数据
         int length = allThreads.size();
@@ -150,9 +137,8 @@ public class MonitorThread extends Thread {
             allCalc.successCount += data.successCount;
             endTime = endTime > data.endTime ? endTime : data.endTime;
         }
-        if (adjustThreadLock != null) {
-            adjustThreadLock.unlock();
-        }
+        this.simperf.getAdjustThreadLock().unlock();
+
         // 计算统计信息
         statInfo.count = allCalc.failCount + allCalc.successCount;
         statInfo.fail = allCalc.failCount;
@@ -227,25 +213,5 @@ public class MonitorThread extends Thread {
 
     public void write(String message) {
         this.messages.add(message);
-    }
-
-    public ReentrantLock getAdjustThreadLock() {
-        return adjustThreadLock;
-    }
-
-    public void setAdjustThreadLock(ReentrantLock adjustThreadLock) {
-        this.adjustThreadLock = adjustThreadLock;
-    }
-
-    public List<SimperfThread> getThreads() {
-        return threads;
-    }
-
-    public List<SimperfThread> getDieThreads() {
-        return dieThreads;
-    }
-
-    public void setDieThreads(List<SimperfThread> dieThreads) {
-        this.dieThreads = dieThreads;
     }
 }

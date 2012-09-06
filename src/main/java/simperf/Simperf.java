@@ -125,11 +125,7 @@ public class Simperf {
             TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
         threadLatch = new CountDownLatch(threadPoolSize);
         if (null == monitorThread) {
-            monitorThread = new MonitorThread(threads, threadPool, interval);
-            // 设置调整线程锁
-            monitorThread.setAdjustThreadLock(adjustThreadLock);
-            // 统计时计算已经停止的线程
-            monitorThread.setDieThreads(dieThreads);
+            monitorThread = new MonitorThread(this);
         }
     }
 
@@ -141,7 +137,7 @@ public class Simperf {
         if (threads.size() > 0) {
             int before = this.threadPoolSize;
             // 正在运行中时动态调整
-            boolean result = adjustThreadPoolSize(thread);
+            boolean result = adjustThreadTo(thread);
             if (result) {
                 this.threadPoolSize = thread;
                 logger.info("调整并发线程: " + before + " => " + thread);
@@ -203,6 +199,40 @@ public class Simperf {
         return threads;
     }
 
+    /**
+     * 获取当前存活线程数
+     * @return
+     */
+    public int getAliveThreadPoolSize() {
+        adjustThreadLock.lock();
+        int length = threads.size();
+        int aliveCount = 0;
+        for (int i = 0; i < length; i++) {
+            if (threads.get(i).isAlive()) {
+                aliveCount++;
+            }
+        }
+        adjustThreadLock.unlock();
+        return aliveCount;
+    }
+
+    /**
+     * 获取执行完毕的线程数
+     * @return
+     */
+    public int getDieThreadPoolSize() {
+        adjustThreadLock.lock();
+        int length = threads.size();
+        int aliveCount = 0;
+        for (int i = 0; i < length; i++) {
+            if (!threads.get(i).isAlive()) {
+                aliveCount++;
+            }
+        }
+        adjustThreadLock.unlock();
+        return aliveCount;
+    }
+
     public String getStartInfo() {
         startInfo = "{StartInfo: {THREAD_POOL_SIZE:" + threadPoolSize + ",LOOP_COUNT:" + loopCount
                     + ",INTERVAL:" + interval + "}, ExtInfo: " + extInfo + "}";
@@ -257,38 +287,104 @@ public class Simperf {
 
     /**
      * 动态调整线程并发量
-     * @param threadPoolSize
+     * @param number 目标线程数
      */
-    private boolean adjustThreadPoolSize(int threadPoolSize) {
+    public boolean adjustThreadTo(int number) {
+        int currentThreadPoolSize = threads.size();
+        if (number <= 0 || currentThreadPoolSize <= 0 || number == currentThreadPoolSize) {
+            logger.warn("参数检查失败");
+            return false;
+        }
+
+        if (number > threads.size()) {
+            return increaseThread(number - currentThreadPoolSize);
+        } else {
+            return decreaseThread(currentThreadPoolSize - number);
+        }
+    }
+
+    /**
+     * 动态调整线程并发量
+     * @param number 变化线程数
+     */
+    public boolean adjustThread(int number) {
+        int currentThreadPoolSize = threads.size();
+        if (number == 0 || currentThreadPoolSize <= 0) {
+            logger.warn("参数检查失败");
+            return false;
+        }
+        if (number > 0) {
+            return increaseThread(number);
+        } else {
+            return decreaseThread(0 - number);
+        }
+    }
+
+    /**
+     * 动态增加线程
+     * @param number 增加线程数
+     */
+    public boolean increaseThread(int number) {
         if (adjustThreadLock.isLocked()) {
             logger.warn("暂时不能进行线程调整");
             return false;
         }
         int currentThreadPoolSize = threads.size();
-        if (threadPoolSize <= 0 || currentThreadPoolSize <= 0
-            || threadPoolSize == currentThreadPoolSize) {
+        if (number <= 0 || currentThreadPoolSize <= 0) {
             logger.warn("参数检查失败");
             return false;
         }
         adjustThreadLock.lock();
-        if (currentThreadPoolSize > threadPoolSize) {
-            for (int i = currentThreadPoolSize - 1; i >= threadPoolSize; i--) {
-                SimperfThread toStopThread = threads.remove(i);
-                toStopThread.stop();
-                dieThreads.add(toStopThread);
-            }
-        } else {
-            CountDownLatch adjustLatch = new CountDownLatch(threadPoolSize - currentThreadPoolSize);
-            for (int i = currentThreadPoolSize; i < threadPoolSize; i++) {
-                SimperfThread thread = createThread();
-                thread.setTransCount(loopCount);
-                thread.setThreadLatch(adjustLatch);
-                thread.setMaxTps(maxTps);
-                threadPool.execute(thread);
-                threads.add(thread);
-            }
+        CountDownLatch adjustLatch = new CountDownLatch(number);
+        for (int i = 0; i < number; i++) {
+            SimperfThread thread = createThread();
+            thread.setTransCount(loopCount);
+            thread.setThreadLatch(adjustLatch);
+            thread.setMaxTps(maxTps);
+            threadPool.execute(thread);
+            threads.add(thread);
         }
         adjustThreadLock.unlock();
+        this.threadPoolSize = threads.size();
+        logger.debug("增加并发线程: " + number + "个");
         return true;
+    }
+
+    /**
+     * 减小线程
+     * @param number 减小线程数
+     */
+    public boolean decreaseThread(int number) {
+        if (adjustThreadLock.isLocked()) {
+            logger.warn("暂时不能进行线程调整");
+            return false;
+        }
+        int currentThreadPoolSize = threads.size();
+        if (number <= 0 || number >= currentThreadPoolSize || currentThreadPoolSize <= 0) {
+            logger.warn("参数检查失败");
+            return false;
+        }
+        adjustThreadLock.lock();
+        for (int i = currentThreadPoolSize - 1; i >= currentThreadPoolSize - number; i--) {
+            SimperfThread toStopThread = threads.remove(i);
+            toStopThread.stop();
+            dieThreads.add(toStopThread);
+        }
+        adjustThreadLock.unlock();
+        this.threadPoolSize = threads.size();
+        logger.debug("减小并发线程: " + number + "个");
+        return true;
+    }
+
+    public ExecutorService getThreadPool() {
+        return threadPool;
+    }
+
+    public ReentrantLock getAdjustThreadLock() {
+        return adjustThreadLock;
+    }
+
+    public List<SimperfThread> getDieThreads() {
+        return dieThreads;
     }
 }
