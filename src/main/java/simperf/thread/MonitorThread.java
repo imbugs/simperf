@@ -8,6 +8,8 @@ import java.util.concurrent.ExecutorService;
 
 import simperf.config.Constant;
 import simperf.result.DataStatistics;
+import simperf.result.DefaultConsolePrinter;
+import simperf.result.DefaultLogFileWriter;
 import simperf.result.StatInfo;
 import simperf.util.SimperfUtil;
 
@@ -48,7 +50,7 @@ public class MonitorThread extends Thread {
     }
 
     /**
-     * run之前进行默认的初始化设置
+     * run之前进行默认的初始化设置，添加Console及File输出
      */
     protected void doInit() {
         this.registerCallback(new DefaultConsolePrinter());

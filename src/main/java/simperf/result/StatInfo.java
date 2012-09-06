@@ -15,69 +15,69 @@ public class StatInfo {
     /**
      * 输出消息格式化
      */
-    private static String           msgFormat  = Constant.DEFAULT_MSG_FORMAT;
+    private String           msgFormat  = Constant.DEFAULT_MSG_FORMAT;
     /**
      * 时间格式化，例如：new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
      */
-    private static SimpleDateFormat dataFormat = null;
+    private SimpleDateFormat dateFormat = Constant.DEFAULT_DATE_FORMAT;
 
     /**
      * 本记录统计的时间
      */
-    public long                     time;
+    public long              time;
 
     /**
      * 平均TPS
      */
-    public String                   avgTps;
+    public String            avgTps;
 
     /**
      * 发送总计数
      */
-    public long                     count;
+    public long              count;
 
     /**
      * 发送总耗时
      */
-    public long                     duration;
+    public long              duration;
 
     /**
      * 发送失败数
      */
-    public long                     fail;
+    public long              fail;
 
     /**
      * 当前时间段TPS
      */
-    public String                   tTps;
+    public String            tTps;
 
     /**
      * 当前时间段计数
      */
-    public long                     tCount;
+    public long              tCount;
 
     /**
      * 当前时间段耗时
      */
-    public long                     tDuration;
+    public long              tDuration;
 
     /**
      * 当前时间段失败数
      */
-    public long                     tFail;
+    public long              tFail;
 
     public StatInfo() {
     }
 
     public StatInfo(String msgFormat, SimpleDateFormat dateFormat) {
-        StatInfo.msgFormat = msgFormat;
-        StatInfo.dataFormat = dateFormat;
+        this.msgFormat = msgFormat;
+        this.dateFormat = dateFormat;
     }
 
     public String toString() {
         String timeStr = String.valueOf(time);
-        if (null != dataFormat) {
-            timeStr = dataFormat.format(time);
+        if (null != dateFormat) {
+            timeStr = dateFormat.format(time);
         }
         return String.format(msgFormat, timeStr, avgTps, count, duration, fail, tTps, tCount,
             tDuration, tFail);
@@ -110,19 +110,19 @@ public class StatInfo {
         System.out.println(sdf.format(System.currentTimeMillis()));
     }
 
-    public static String getMsgFormat() {
+    public String getMsgFormat() {
         return msgFormat;
     }
 
-    public static void setMsgFormat(String msgFormat) {
-        StatInfo.msgFormat = msgFormat;
+    public void setMsgFormat(String msgFormat) {
+        this.msgFormat = msgFormat;
     }
 
-    public static SimpleDateFormat getDataFormat() {
-        return dataFormat;
+    public SimpleDateFormat getDataFormat() {
+        return dateFormat;
     }
 
-    public static void setDataFormat(SimpleDateFormat dataFormat) {
-        StatInfo.dataFormat = dataFormat;
+    public void setDataFormat(SimpleDateFormat dataFormat) {
+        this.dateFormat = dataFormat;
     }
 }

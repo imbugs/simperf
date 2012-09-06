@@ -1,15 +1,18 @@
 package simperf.config;
 
+import java.text.SimpleDateFormat;
+
 public class Constant {
     /**
      * 默认结果输出文件
      */
-    public static String DEFAULT_RESULT_LOG    = "simperf-result.log";
+    public static final String DEFAULT_RESULT_LOG    = "simperf-result.log";
 
     /**
      * 默认JTL文件
      */
-    public static String DEFAULT_JTL_FILE      = "simperf.jtl";
+    public static final String DEFAULT_JTL_FILE      = "simperf.jtl";
+
 
     /**
      * 默认的N/A字符串
@@ -25,4 +28,9 @@ public class Constant {
      * 默认的msg输出格式
      */
     public static String DEFAULT_MSG_FORMAT    = "{time:%s ,avgTps:%s ,count:%d ,duration:%d ,fail:%d ,tTps:%s ,tCount:%d ,tDuration:%d ,tFail:%d}\n";
+
+    /**
+     * 默认的时间格式, 例如：new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+     */
+    public static SimpleDateFormat DEFAULT_DATE_FORMAT = null;
 }

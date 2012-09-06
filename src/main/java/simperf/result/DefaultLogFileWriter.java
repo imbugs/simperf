@@ -1,11 +1,16 @@
-package simperf.thread;
+package simperf.result;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-import simperf.result.StatInfo;
+import simperf.thread.DefaultCallback;
+import simperf.thread.MonitorThread;
 
+/**
+ * 将结果写到文件的默认实现
+ * @author imbugs
+ */
 public class DefaultLogFileWriter extends DefaultCallback {
     private FileWriter fileWriter;
 
