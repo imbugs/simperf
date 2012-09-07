@@ -325,29 +325,32 @@ public class Simperf {
      * @param number 增加线程数
      */
     public boolean increaseThread(int number) {
-        if (adjustThreadLock.isLocked()) {
-            logger.warn("暂时不能进行线程调整");
-            return false;
-        }
         int currentThreadPoolSize = threads.size();
         if (number <= 0 || currentThreadPoolSize <= 0) {
             logger.warn("参数检查失败");
             return false;
         }
-        adjustThreadLock.lock();
-        CountDownLatch adjustLatch = new CountDownLatch(number);
-        for (int i = 0; i < number; i++) {
-            SimperfThread thread = createThread();
-            thread.setTransCount(loopCount);
-            thread.setThreadLatch(adjustLatch);
-            thread.setMaxTps(maxTps);
-            threadPool.execute(thread);
-            threads.add(thread);
+        if (adjustThreadLock.tryLock()) {
+            try {
+                CountDownLatch adjustLatch = new CountDownLatch(number);
+                for (int i = 0; i < number; i++) {
+                    SimperfThread thread = createThread();
+                    thread.setTransCount(loopCount);
+                    thread.setThreadLatch(adjustLatch);
+                    thread.setMaxTps(maxTps);
+                    threadPool.execute(thread);
+                    threads.add(thread);
+                }
+            } finally {
+                adjustThreadLock.unlock();
+            }
+            this.threadPoolSize = threads.size();
+            logger.debug("增加并发线程: " + number + "个");
+            return true;
+        } else {
+            logger.warn("暂时不能进行线程调整");
+            return false;
         }
-        adjustThreadLock.unlock();
-        this.threadPoolSize = threads.size();
-        logger.debug("增加并发线程: " + number + "个");
-        return true;
     }
 
     /**
@@ -355,25 +358,28 @@ public class Simperf {
      * @param number 减小线程数
      */
     public boolean decreaseThread(int number) {
-        if (adjustThreadLock.isLocked()) {
-            logger.warn("暂时不能进行线程调整");
-            return false;
-        }
         int currentThreadPoolSize = threads.size();
         if (number <= 0 || number >= currentThreadPoolSize || currentThreadPoolSize <= 0) {
             logger.warn("参数检查失败");
             return false;
         }
-        adjustThreadLock.lock();
-        for (int i = currentThreadPoolSize - 1; i >= currentThreadPoolSize - number; i--) {
-            SimperfThread toStopThread = threads.remove(i);
-            toStopThread.stop();
-            dieThreads.add(toStopThread);
+        if (adjustThreadLock.tryLock()) {
+            try {
+                for (int i = currentThreadPoolSize - 1; i >= currentThreadPoolSize - number; i--) {
+                    SimperfThread toStopThread = threads.remove(i);
+                    toStopThread.stop();
+                    dieThreads.add(toStopThread);
+                }
+            } finally {
+                adjustThreadLock.unlock();
+            }
+            this.threadPoolSize = threads.size();
+            logger.debug("减小并发线程: " + number + "个");
+            return true;
+        } else {
+            logger.warn("暂时不能进行线程调整");
+            return false;
         }
-        adjustThreadLock.unlock();
-        this.threadPoolSize = threads.size();
-        logger.debug("减小并发线程: " + number + "个");
-        return true;
     }
 
     public ExecutorService getThreadPool() {
