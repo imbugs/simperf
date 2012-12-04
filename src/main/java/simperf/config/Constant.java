@@ -19,7 +19,7 @@ public class Constant {
     public static String           DEFAULT_NA            = "N/A";
 
     /**
-     * 默认的N/A字符串
+     * 除法运算精度
      */
     public static String           DEFAULT_DIVIDE_FORMAT = "%.2f";
 
