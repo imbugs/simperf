@@ -1,5 +1,6 @@
 TODO:
-
+Version 1.0.5
+Change: gson依赖更新
 ==================
 Version 1.0.4
 New Feature: 添加线程步进(SteppingThread)控制类
