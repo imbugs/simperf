@@ -81,7 +81,7 @@ public class SimperfTestCaseTest extends SimperfTestCase {
         Simperf perf = new Simperf(thread, count);
 		// 启动simperf
 </pre>
-+ 采样时间间隔
++ 采样时间间隔(默认1000)
 <pre>
         Simperf perf = new Simperf(thread, count);
 		int interval = 1000; // 1000ms
@@ -95,6 +95,10 @@ public class SimperfTestCaseTest extends SimperfTestCase {
         perf.setMaxTps(maxTps);
 		// 启动simperf
 </pre>
+### 命令行参数
+在[命令行里使用Simperf](#2. 在命令行里使用Simperf)
+### 扩展参数
+Simperf的命令行
 结果输出
 --------
 动态调整
