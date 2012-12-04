@@ -102,6 +102,9 @@ public class SimperfTestCaseTest extends SimperfTestCase {
 		SimperfCommand simCommand = new SimperfCommand(args);
         simCommand.getOptions().addOption("a", "argument", true, "一个自定义参数");
         Simperf perf = simCommand.create();
+		if (simCommand.getCmd().hasOption("a")) {
+            System.out.println(simCommand.getCmd().getOptionValue("a"));
+        }
 </pre>
 
 结果输出
