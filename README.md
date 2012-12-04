@@ -96,12 +96,61 @@ public class SimperfTestCaseTest extends SimperfTestCase {
 		// 启动simperf
 </pre>
 ### 命令行参数
-在[命令行里使用Simperf](#2. 在命令行里使用Simperf)
-### 扩展参数
-Simperf的命令行
+在[命令行里使用Simperf](#2-在命令行里使用Simperf)中已经给出了框架支持的参数，你可以根据自已的需要来添加支持的参数
+<pre>
+		SimperfCommand simCommand = new SimperfCommand(args);
+        simCommand.getOptions().addOption("a", "argument", true, "一个自定义参数");
+        Simperf perf = simCommand.create();
+</pre>
+
 结果输出
 --------
+### 支持输出类型
++ 结果log日志输出
++ 结果文件输出
++ jtl文件输出(可提供给jmeter分析)
++ SQL文件输出
++ 自定义输出
+框架默认加载了log日志与文件输出两个输出模块，输出格式为Json格式
+### 调整输出类型
+<pre>
+        Simperf perf = new Simperf(10, 10);
+        perf.getMonitorThread().clearCallback(); //清除所有callback
+        perf.getMonitorThread().registerCallback(new DefaultConsolePrinter()); //添加默认控制台输出(log日志输出模块)
+        perf.getMonitorThread().registerCallback(
+            new DefaultLogFileWriter(Constant.DEFAULT_RESULT_LOG)); //添加结果文件输出模块,默认文件名为：simperf-result.log
+        perf.getMonitorThread().registerCallback(new DefaultSqlFileWriter("xxx.sql"));//添加SQL文件输出
+		// 启动simperf
+</pre>
+jtl文件的配置与其它几种类型配置方式有些不同
+<pre>
+		Simperf perf = new Simperf(10, 10);
+        // 打印JTL日志，会有一些性能损耗
+        JTLResult jtl = new JTLResult(perf.getMonitorThread()); //默认输出到Constant.DEFAULT_JTL_FILE
+        SimperfConfig.setConfig(SimperfConfig.JTL_RESULT, jtl);
+		// 启动simperf
+</pre>
+### 调整输出位置
++ 框架默认加载的log日志位置
+<pre>
+		Simperf perf = new Simperf(10, 10);
+        perf.getMonitorThread().setLogFile("simperf.log"); //会输出到指定的simperf.log文件中
+</pre>
++ 自已添加指定的输出模块
+<pre>
+        Simperf perf = new Simperf(10, 10);
+        perf.getMonitorThread().clearCallback(); //清除所有callback
+        perf.getMonitorThread().registerCallback(new DefaultLogFileWriter("simperf.log"));
+</pre>
+### 自定义输出
+定义一个输出模块，继承DefaultCallback基类，然后使用perf.getMonitorThread().registerCallback来加载输出模块
+<pre>
+    public void onStart(MonitorThread monitorThread); //simperf启动时会调用
+    public void onMonitor(MonitorThread monitorThread, StatInfo statInfo); //每次采样计算数据时会调用
+    public void onExit(MonitorThread monitorThread); //simperf退出时会调用
+</pre>
+
 动态调整
 --------
-用户自定义
-----------
+自定义模块
+--------------
