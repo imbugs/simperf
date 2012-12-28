@@ -97,7 +97,7 @@ Settings
 </pre>
 
 ### The Options Of Command Line
-[Use simperf in command line](#2-在命令行里使用simperf) has given the supported options by Simperf. You could add your own options if you need.
+[Use simperf in command line](#2-use-simperf-in-command-line) has given the supported options by Simperf. You could add your own options if you need.
 <pre>
 		SimperfCommand simCommand = new SimperfCommand(args);
         simCommand.getOptions().addOption("a", "argument", true, "a custom argument");
