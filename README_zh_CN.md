@@ -1,4 +1,4 @@
-### [参考手册](README_zh_CN.md)&nbsp;&nbsp;&nbsp;&nbsp;[Reference manual](README.md)
+### [参考手册](https://github.com/imbugs/simperf/blob/master/README_zh_CN.md)&nbsp;&nbsp;&nbsp;&nbsp;[Reference manual](https://github.com/imbugs/simperf/blob/master/README.md)
 
 simperf
 =======
