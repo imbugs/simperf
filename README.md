@@ -71,6 +71,8 @@ public class SimperfTestCaseTest extends SimperfTestCase {
 }
 </pre>
 
+<b>Download: </b>[simperf-1.0.4.jar](http://tool.imbugs.com/simperf/simperf-1.0.4.jar)
+
 Reference manual(v1.0.4)
 ================
 Settings
