@@ -55,7 +55,7 @@ public class Simperf {
      * simperf本身支持一个控制线程，但用户可以脱离simperf写控制线程
      */
     private ControllThread       controllThread   = null;
-    private ControllThread       timeoutThread    = null;
+    private TimeoutAbortThread   timeoutThread    = null;
     /**
      * 执行线程池，线程池初始化为设置的threadPoolSize，线程池不能主动关闭，否则无法添加新线程
      */
@@ -109,14 +109,6 @@ public class Simperf {
     }
 
     public void start() {
-
-        if (null != controllThread) {
-            controllThread.start();
-        }
-        if (timeout > 0) {
-            timeoutThread = new TimeoutAbortThread(this, timeout);
-            timeoutThread.start();
-        }
         for (int i = 0; i < threadPoolSize; i++) {
             SimperfThread thread = createThread();
             thread.setTransCount(loopCount);
@@ -128,6 +120,13 @@ public class Simperf {
         String info = getStartInfo();
         monitorThread.write(info);
         monitorThread.start();
+        if (null != controllThread) {
+            controllThread.start();
+        }
+        if (timeout > 0) {
+            timeoutThread = new TimeoutAbortThread(this, timeout);
+            timeoutThread.start();
+        }
     }
 
     public SimperfThread createThread() {
@@ -447,5 +446,9 @@ public class Simperf {
 
     public List<SimperfThread> getDieThreads() {
         return dieThreads;
+    }
+
+    public TimeoutAbortThread getTimeoutThread() {
+        return timeoutThread;
     }
 }

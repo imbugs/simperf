@@ -31,4 +31,16 @@ public class SimperfUtil {
             logger.error("线程睡眠被异常打断", e);
         }
     }
+
+    public static float percent(float numerator, float denominator) {
+        if (denominator <= 0) {
+            return 0;
+        }
+        float fractions = numerator / denominator;
+        long percent = Math.round(fractions * 10000);
+        if (percent > 10000) {
+            percent = 10000;
+        }
+        return (percent / 100.0f);
+    }
 }

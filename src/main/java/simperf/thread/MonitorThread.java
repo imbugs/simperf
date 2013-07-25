@@ -92,6 +92,27 @@ public class MonitorThread extends Thread {
         return finish;
     }
 
+    /**
+     * 获取百分比进度，如果设置了timeout并且count=-1则返回timeout进度
+     * @return 百分比进度，例：31.65
+     */
+    public float percentProgress() {
+        this.simperf.getAdjustThreadLock().lock();
+        long allTransCount = 0;
+        long progressCount = 0;
+        for (SimperfThread thread : threads) {
+            allTransCount += thread.getTransCount();
+            progressCount += thread.getCountIndex();
+        }
+        this.simperf.getAdjustThreadLock().unlock();
+
+        if (allTransCount <= 0 && simperf.getTimeoutThread() != null) {
+            return simperf.getTimeoutThread().percentProgress();
+        } else {
+            return SimperfUtil.percent(progressCount, allTransCount);
+        }
+    }
+
     public void doStart() {
         if (callbacks.size() > 0) {
             for (Callback task : callbacks) {

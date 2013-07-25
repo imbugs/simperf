@@ -35,8 +35,8 @@ public class TimeoutAbortThread extends ControllThread {
             logger.error("没有设置simperf，超时控制线程退出");
             return;
         }
+        // 等待压测线程开始执行
         try {
-            // 等待压测线程开始执行
             simperf.getThreadLatch().await();
             startTime = System.currentTimeMillis();
             // 在monitor线程中止之前保持运行状态，不断监测时间
@@ -47,8 +47,16 @@ public class TimeoutAbortThread extends ControllThread {
                     simperf.stopAll();
                 }
             }
+            System.out.println("TOUT EXIT");
         } catch (Throwable e) {
         }
+    }
+
+    /**
+     * 获取百分比进度，则返回timeout进度
+     */
+    public float percentProgress() {
+        return SimperfUtil.percent(System.currentTimeMillis() - startTime, timeout);
     }
 
     public long getTimeout() {
