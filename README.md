@@ -51,6 +51,7 @@ usage: SimperfCommand options
  -j <arg>              [ ] generate jtl report
  -l,--log <arg>        [ ] log filename
  -m,--maxtps <arg>     [ ] max tps
+ -o,--timeout <arg>    [ ] timeout, in millis
  -t,--thread <arg>     [*] number of thread count
 </pre>
 3. Use simperf in JUnit4
@@ -81,7 +82,7 @@ Settings
 + The Number Of Concurrent Threads 
 <pre>
         int thread = 10; // the number of threads
-        int count = 20;  // the number of times to execute the test for each thread
+        int count = 20;  // the number of times to execute the test for each thread, -1 means to run forever
         Simperf perf = new Simperf(thread, count);
 		// start simperf
 </pre>
@@ -90,6 +91,13 @@ Settings
         Simperf perf = new Simperf(thread, count);
 		int interval = 1000; // 1000ms
         perf.setInterval(interval); // Sampling calculation once every 1000 ms
+		// start simperf
+</pre>
++ Timeout (default:-1)
+<pre>
+        Simperf perf = new Simperf(thread, count);
+		int timeout = 10000; // 10000ms
+        perf.timeout(timeout); // the threads will exit after 10s
 		// start simperf
 </pre>
 + The Maximum TPS (optional)

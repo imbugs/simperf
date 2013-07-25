@@ -51,6 +51,7 @@ usage: SimperfCommand options
  -j <arg>              [ ] generate jtl report
  -l,--log <arg>        [ ] log filename
  -m,--maxtps <arg>     [ ] max tps
+ -o,--timeout <arg>    [ ] timeout, in millis
  -t,--thread <arg>     [*] number of thread count
 </pre>
 3. 在Junit4里使用Simperf
@@ -91,6 +92,13 @@ public class SimperfTestCaseTest extends SimperfTestCase {
 		int interval = 1000; // 1000ms
         perf.setInterval(interval); //每隔1000ms进行一次采样计算
 		// 启动simperf
+</pre>
++ 超时设置(默认-1)
+<pre>
+        Simperf perf = new Simperf(thread, count);
+		int timeout = 10000; // 10000ms
+        perf.timeout(timeout); // 在10s后线程会中止运行
+		// start simperf
 </pre>
 + 限制最大TPS(可选)
 <pre>
