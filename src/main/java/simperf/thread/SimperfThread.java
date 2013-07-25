@@ -18,6 +18,9 @@ import simperf.util.SimperfUtil;
 public class SimperfThread implements Runnable {
     private static final Logger logger        = LoggerFactory.getLogger(SimperfThread.class);
 
+    /** 
+     * 执行次数，-1表示永久执行
+     */
     protected long              transCount    = 0;
     protected DataStatistics    statistics    = new DataStatistics();
     protected CountDownLatch    threadLatch;
@@ -44,7 +47,7 @@ public class SimperfThread implements Runnable {
             threadLatch.await();
             beforeRunTask();
             statistics.startTime = statistics.endTime = System.currentTimeMillis();
-            while (countIndex < transCount && !todie) {
+            while ((countIndex < transCount || transCount < 0) && !todie) {
                 Object obj = beforeInvoke();
                 boolean result = runTask();
                 if (result) {

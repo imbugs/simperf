@@ -12,9 +12,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import simperf.thread.ControllThread;
 import simperf.thread.MonitorThread;
 import simperf.thread.SimperfThread;
 import simperf.thread.SimperfThreadFactory;
+import simperf.thread.TimeoutAbortThread;
 
 /**
  * Simperf 是一个简单的性能测试工具，它提供了一个多线程测试框架
@@ -38,12 +40,22 @@ public class Simperf {
     private static final Logger  logger           = LoggerFactory.getLogger(Simperf.class);
 
     private int                  threadPoolSize   = 50;
+
+    /**
+     * 单个线程的循环次数，-1表示永久执行
+     */
     private int                  loopCount        = 2000;
     private int                  interval         = 1000;
+    private long                 timeout          = -1;
     private long                 maxTps           = -1;
     private SimperfThreadFactory threadFactory    = null;
     private MonitorThread        monitorThread    = null;
-
+    /** 
+     * 控制线程，可以进行中止测试线程等操作，与monitor线程不同的是，它完全由用户自定义
+     * simperf本身支持一个控制线程，但用户可以脱离simperf写控制线程
+     */
+    private ControllThread       controllThread   = null;
+    private ControllThread       timeoutThread    = null;
     /**
      * 执行线程池，线程池初始化为设置的threadPoolSize，线程池不能主动关闭，否则无法添加新线程
      */
@@ -97,6 +109,14 @@ public class Simperf {
     }
 
     public void start() {
+
+        if (null != controllThread) {
+            controllThread.start();
+        }
+        if (timeout > 0) {
+            timeoutThread = new TimeoutAbortThread(this, timeout);
+            timeoutThread.start();
+        }
         for (int i = 0; i < threadPoolSize; i++) {
             SimperfThread thread = createThread();
             thread.setTransCount(loopCount);
@@ -191,6 +211,20 @@ public class Simperf {
         this.monitorThread = monitorThread;
     }
 
+    public ControllThread getControllThread() {
+        return controllThread;
+    }
+
+    /**
+     * 设置控制线程，需要在simperf启动之前设置好，如果在simperf启动之后设置
+     */
+    public void setControllThread(ControllThread controllThread) {
+        this.controllThread = controllThread;
+        if (null != this.controllThread) {
+            this.controllThread.setSimperf(this);
+        }
+    }
+
     public CountDownLatch getThreadLatch() {
         return threadLatch;
     }
@@ -235,7 +269,8 @@ public class Simperf {
 
     public String getStartInfo() {
         startInfo = "{StartInfo: {THREAD_POOL_SIZE:" + threadPoolSize + ",LOOP_COUNT:" + loopCount
-                    + ",INTERVAL:" + interval + "}, ExtInfo: " + extInfo + "}";
+                    + ",INTERVAL:" + interval + ",TIMEOUT=" + timeout + "}, ExtInfo: " + extInfo
+                    + "}";
         return startInfo;
     }
 
@@ -282,6 +317,15 @@ public class Simperf {
      */
     public Simperf thread(int thread) {
         setThreadPoolSize(thread);
+        return this;
+    }
+
+    /**
+     * 设置超时时间
+     * @param thread
+     */
+    public Simperf timeout(long timeout) {
+        this.timeout = timeout;
         return this;
     }
 
@@ -380,6 +424,17 @@ public class Simperf {
             logger.warn("暂时不能进行线程调整");
             return false;
         }
+    }
+
+    /**
+     * 中止所有线程的运行
+     */
+    public void stopAll() {
+        adjustThreadLock.lock();
+        for (SimperfThread thread : threads) {
+            thread.stop();
+        }
+        adjustThreadLock.unlock();
     }
 
     public ExecutorService getThreadPool() {
