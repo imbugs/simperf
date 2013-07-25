@@ -30,6 +30,11 @@ public @interface Simperf {
     int interval() default 1000;
 
     /**
+     * 超时设置，milliseconds
+     */
+    long timeout() default -1;
+
+    /**
      * 单线程最大TPS
      */
     long maxTps() default -1;

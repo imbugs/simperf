@@ -9,7 +9,7 @@ public class SimperfCommandTest {
     static MessageSender sender = new MessageSender();
 
     public static void main(String[] args) {
-        String[] xx = new String[] { "-c", "1000", "-t", "10", "-i", "500" };
+        String[] xx = new String[] { "-c", "1000", "-t", "10", "-i", "500", "-o", "3000" };
         SimperfCommand simCommand = new SimperfCommand(xx);
         Simperf perf = simCommand.create();
         if (perf == null) {

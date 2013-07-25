@@ -55,6 +55,7 @@ public class SimperfJUnit4Runner extends JUnit4ClassRunner {
             Simperf simperf = new Simperf(simperfConfig.thread(), simperfConfig.count(),
                 simperfConfig.interval());
             injectVariable(test, simperf, Simperf.class);
+            simperf.timeout(simperfConfig.timeout());
             simperf.setMaxTps(simperfConfig.maxTps());
             simperf.getMonitorThread().setLogFile(simperfConfig.logFile());
             if (simperfConfig.jtl()) {

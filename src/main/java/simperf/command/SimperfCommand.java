@@ -30,6 +30,7 @@ public class SimperfCommand {
         options.addOption(thread);
         options.addOption(count);
         options.addOption("i", "interval", true, "[ ] interval of print messages, default 1000");
+        options.addOption("o", "timeout", true, "[ ] timeout, in millis");
         options.addOption("j", true, "[ ] generate jtl report");
         options.addOption("m", "maxtps", true, "[ ] max tps");
         options.addOption("l", "log", true, "[ ] log filename");
@@ -48,6 +49,12 @@ public class SimperfCommand {
             }
 
             Simperf simperf = new Simperf(thread, count, interval);
+
+            long timeout = -1;
+            if (cmd.hasOption("o")) {
+                timeout = Long.valueOf(cmd.getOptionValue("o"));
+            }
+            simperf.timeout(timeout);
 
             if (cmd.hasOption("j")) {
                 String jtlFile = cmd.getOptionValue("j");
