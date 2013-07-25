@@ -47,7 +47,6 @@ public class TimeoutAbortThread extends ControllThread {
                     simperf.stopAll();
                 }
             }
-            System.out.println("TOUT EXIT");
         } catch (Throwable e) {
         }
     }
