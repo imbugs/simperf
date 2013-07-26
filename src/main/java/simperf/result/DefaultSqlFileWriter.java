@@ -22,7 +22,7 @@ public class DefaultSqlFileWriter extends DefaultCallback {
     protected static String     CREATE_TABLE         = "CREATE TABLE IF NOT EXISTS simperf_result( "
                                                        + "id BIGINT NOT NULL AUTO_INCREMENT ,time BIGINT NULL ,"
                                                        + "avgtps VARCHAR(45) NULL ,count BIGINT NULL ,duration BIGINT NULL ,"
-                                                       + "fail BIGINT NULL ,ttps BIGINT NULL ,tcount BIGINT NULL ,tduration BIGINT NULL ,"
+                                                       + "fail BIGINT NULL ,ttps VARCHAR(45) NULL ,tcount BIGINT NULL ,tduration BIGINT NULL ,"
                                                        + "tfail BIGINT NULL ,summary TINYINT(1) NULL DEFAULT 0 ,PRIMARY KEY (id) );";
     protected static String     SQL_TEMPLATE         = "insert into simperf_result(time ,avgtps ,count ,duration ,fail ,ttps ,tcount ,tduration ,tfail ,summary) "
                                                        + "values(%s ,'%s' ,%d ,%d ,%d ,'%s' ,%d ,%d ,%d ,0);";
