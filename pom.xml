@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>simperf</groupId>
 	<artifactId>simperf</artifactId>
-	<version>1.0.5</version>
+	<version>1.0.6</version>
 	<packaging>jar</packaging>
 	<name>simple-perf</name>
 	<url>http://imbugs.com</url>
