@@ -1,10 +1,7 @@
 package simperf.sample;
 
 import simperf.Simperf;
-import simperf.config.SimperfConfig;
 import simperf.result.DefaultHttpWriter;
-import simperf.result.DefaultSqlFileWriter;
-import simperf.result.JTLResult;
 import simperf.thread.SimperfThread;
 import simperf.thread.SimperfThreadFactory;
 
