@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 
 import simperf.Simperf;
 import simperf.controllers.TimeSteppingThreadTrigger;
+import simperf.sample.thread.MessageSender;
+import simperf.sample.thread.SendMessageThread;
 import simperf.thread.SimperfThread;
 import simperf.thread.SimperfThreadFactory;
 

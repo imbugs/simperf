@@ -2,6 +2,8 @@ package simperf.sample;
 
 import simperf.Simperf;
 import simperf.result.DefaultHttpWriter;
+import simperf.sample.thread.MessageSender;
+import simperf.sample.thread.SendMessageThread;
 import simperf.thread.SimperfThread;
 import simperf.thread.SimperfThreadFactory;
 

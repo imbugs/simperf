@@ -43,8 +43,7 @@ public class SimperfThread implements Runnable {
     public void run() {
         try {
             warmUp();
-            threadLatch.countDown();
-            threadLatch.await();
+            await();
             beforeRunTask();
             statistics.startTime = statistics.endTime = System.currentTimeMillis();
             while ((countIndex < transCount || transCount < 0) && !todie) {
@@ -71,6 +70,15 @@ public class SimperfThread implements Runnable {
             logger.error("线程被异常打断", e);
         }
         alive = false;
+    }
+
+    /**
+     * 等待所有线程就绪
+     * @throws InterruptedException
+     */
+    protected void await() throws InterruptedException {
+        threadLatch.countDown();
+        threadLatch.await();
     }
 
     protected void afterInvoke(boolean result, Object beforeInvokeResult) {
