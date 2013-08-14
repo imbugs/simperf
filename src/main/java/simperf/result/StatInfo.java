@@ -15,16 +15,22 @@ import simperf.config.Constant;
  * @author imbugs
  */
 public class StatInfo {
-    private static final Logger logger     = LoggerFactory.getLogger(StatInfo.class);
+    private static final Logger logger        = LoggerFactory.getLogger(StatInfo.class);
 
     /**
      * 输出消息格式化
      */
-    private String              msgFormat  = Constant.DEFAULT_MSG_FORMAT;
+    private String              msgFormat     = Constant.DEFAULT_MSG_FORMAT;
+
+    /**
+     * 详细消息格式化,添加RT响应
+     */
+    private String              detailMsgFormat = Constant.DEFAULT_DETAIL_MSG_FORMAT;
+
     /**
      * 时间格式化，例如：new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
      */
-    private SimpleDateFormat    dateFormat = Constant.DEFAULT_DATE_FORMAT;
+    private SimpleDateFormat    dateFormat    = Constant.DEFAULT_DATE_FORMAT;
 
     /**
      * 本记录统计的时间
@@ -47,6 +53,21 @@ public class StatInfo {
     public long                 duration;
 
     /**
+     * 真正执行时间,去除sleep与计算时间, milliTime
+     */
+    public long                 runningTime;
+
+    /**
+     * 平均响应时间, milliTime
+     */
+    public String               avgRt;
+
+    /**
+     * 最大最小响应时间, milliTime
+     */
+    public long                 maxRt, minRt;
+
+    /**
      * 发送失败数
      */
     public long                 fail;
@@ -67,6 +88,16 @@ public class StatInfo {
     public long                 tDuration;
 
     /**
+     * 当前时间段真正执行时间,去除sleep与计算时间
+     */
+    public long                 tRunningTime;
+
+    /**
+     * 当前时间段平均响应时间
+     */
+    public String               tAvgRt;
+
+    /**
      * 当前时间段失败数
      */
     public long                 tFail;
@@ -80,6 +111,14 @@ public class StatInfo {
     }
 
     public String toString() {
+        if (Constant.USE_DETAIL_MSG_FORMAT) {
+            return detailFormat();
+        } else {
+            return format();
+        }
+    }
+
+    public String format() {
         String timeStr = String.valueOf(time);
         if (null != dateFormat) {
             timeStr = dateFormat.format(time);
@@ -87,7 +126,16 @@ public class StatInfo {
         return String.format(msgFormat, timeStr, avgTps, count, duration, fail, tTps, tCount,
             tDuration, tFail);
     }
-
+    
+    public String detailFormat() {
+        String timeStr = String.valueOf(time);
+        if (null != dateFormat) {
+            timeStr = dateFormat.format(time);
+        }
+        return String.format(detailMsgFormat, timeStr, avgTps, avgRt, maxRt, minRt, count, duration, fail, tTps, tAvgRt, tCount,
+            tDuration, tFail);
+    }
+    
     public void write(FileWriter fw) {
         if (fw == null) {
             return;

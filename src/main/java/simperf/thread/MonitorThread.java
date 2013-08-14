@@ -148,7 +148,8 @@ public class MonitorThread extends Thread {
             earlyTime = allThreads.get(0).getStatistics().startTime;
             for (int i = 1; i < length; i++) {
                 long t = allThreads.get(i).getStatistics().startTime;
-                earlyTime = earlyTime > t ? t : earlyTime;
+                // min
+                earlyTime = earlyTime < t ? earlyTime : t;
             }
         }
         DataStatistics allCalc = new DataStatistics();
@@ -156,7 +157,12 @@ public class MonitorThread extends Thread {
             DataStatistics data = allThreads.get(i).getStatistics();
             allCalc.failCount += data.failCount;
             allCalc.successCount += data.successCount;
+            allCalc.runningTime += data.runningTime;
+            // max
+            allCalc.maxRt = allCalc.maxRt > data.maxRt ? allCalc.maxRt : data.maxRt;
             endTime = endTime > data.endTime ? endTime : data.endTime;
+            // min
+            allCalc.minRt = allCalc.minRt < data.minRt ? allCalc.minRt : data.minRt;
         }
         this.simperf.getAdjustThreadLock().unlock();
 
@@ -165,7 +171,10 @@ public class MonitorThread extends Thread {
         statInfo.fail = allCalc.failCount;
         statInfo.duration = endTime - earlyTime;
         statInfo.avgTps = SimperfUtil.divide(statInfo.count * 1000, statInfo.duration);
-
+        statInfo.maxRt = allCalc.maxRt / 1000000;
+        statInfo.minRt = allCalc.minRt / 1000000;
+        statInfo.runningTime = allCalc.runningTime / 1000000;
+        statInfo.avgRt = SimperfUtil.divide(statInfo.runningTime , statInfo.count);
         statInfo.time = System.currentTimeMillis();
 
         // 统计实时信息，距离上一次统计的信息
@@ -173,6 +182,8 @@ public class MonitorThread extends Thread {
             statInfo.tDuration = endTime - lastData.endTime;
             statInfo.tCount = statInfo.count - lastData.successCount - lastData.failCount;
             statInfo.tFail = allCalc.failCount - lastData.failCount;
+            statInfo.tRunningTime = (allCalc.runningTime - lastData.runningTime) / 1000000;
+            statInfo.tAvgRt = SimperfUtil.divide(statInfo.tRunningTime , statInfo.tCount);
             statInfo.tTps = SimperfUtil.divide(statInfo.tCount * 1000, statInfo.tDuration);
         } else {
             // 第一次统计，没有上次记录结果
@@ -180,6 +191,7 @@ public class MonitorThread extends Thread {
             statInfo.tFail = statInfo.fail;
             statInfo.tDuration = statInfo.duration;
             statInfo.tTps = statInfo.avgTps;
+            statInfo.tRunningTime = statInfo.runningTime;
         }
         // 记录上次结果，用于分析实时信息
         lastData = allCalc;

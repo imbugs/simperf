@@ -35,6 +35,10 @@ public class SimperfThread implements Runnable {
     protected long              overflowCount = 1;
     protected long              countIndex    = 0;
     /**
+     * 只用于记录sample的开始时间
+     */
+    protected long              sampleStart   = 0;
+    /**
      * 判断当前线程是否还存活
      */
     protected boolean           alive         = true;
@@ -48,7 +52,9 @@ public class SimperfThread implements Runnable {
             statistics.startTime = statistics.endTime = System.currentTimeMillis();
             while ((countIndex < transCount || transCount < 0) && !todie) {
                 Object obj = beforeInvoke();
+                sampleStart = System.nanoTime();
                 boolean result = runTask();
+                statistics.addRunningTime(System.nanoTime() - sampleStart);
                 if (result) {
                     statistics.successCount++;
                 } else {
@@ -56,6 +62,8 @@ public class SimperfThread implements Runnable {
                 }
                 countIndex++;
                 statistics.endTime = System.currentTimeMillis();
+                afterInvoke(result, obj);
+
                 if (maxTps > 0) {
                     // 休眠一定时间，达到指定TPS
                     long sleepTime = calcSleepTime();
@@ -63,7 +71,6 @@ public class SimperfThread implements Runnable {
                         Thread.sleep(sleepTime);
                     }
                 }
-                afterInvoke(result, obj);
             }
             afterRunTask();
         } catch (InterruptedException e) {

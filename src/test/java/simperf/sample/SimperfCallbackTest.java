@@ -1,13 +1,15 @@
 package simperf.sample;
 
 import simperf.Simperf;
-import simperf.config.Constant;
+import simperf.config.SimperfConfig;
+import simperf.result.DefaultSqlFileWriter;
+import simperf.result.JTLResult;
 import simperf.sample.thread.MessageSender;
 import simperf.sample.thread.SendMessageThread;
 import simperf.thread.SimperfThread;
 import simperf.thread.SimperfThreadFactory;
 
-public class SimperfTest {
+public class SimperfCallbackTest {
     static MessageSender sender = new MessageSender();
 
     /**
@@ -15,11 +17,15 @@ public class SimperfTest {
      */
     public static void main(String[] args) {
 
-        Simperf perf = new Simperf(10, 100);
-        Constant.USE_DETAIL_MSG_FORMAT = true;
-        perf.setMaxTps(100);
+        Simperf perf = new Simperf(10, 10);
+        perf.setMaxTps(5);
+        perf.getMonitorThread().setLogFile("xxx.log");
+        perf.getMonitorThread().registerCallback(new DefaultSqlFileWriter("xxx.sql"));
 
-        sender.sleepTime = 100;
+        sender.sleepTime = 10;
+        // 打印JTL日志，会有一些性能损耗
+        JTLResult jtl = new JTLResult(perf.getMonitorThread());
+        SimperfConfig.setConfig(SimperfConfig.JTL_RESULT, jtl);
 
         perf.start(new SimperfThreadFactory() {
             public SimperfThread newThread() {
