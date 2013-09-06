@@ -111,6 +111,10 @@ public class Simperf {
     public void start() {
         for (int i = 0; i < threadPoolSize; i++) {
             SimperfThread thread = createThread();
+            if (threads.contains(thread)) {
+                logger.error("线程组不能包含相同的线程对象，请在SimperfThreadFactory.newThread()中创建新的线程对象");
+                return;
+            }
             thread.setTransCount(loopCount);
             thread.setThreadLatch(threadLatch);
             thread.setMaxTps(maxTps);
