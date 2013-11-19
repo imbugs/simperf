@@ -53,7 +53,7 @@ public class SimperfThread implements Runnable {
             while ((countIndex < transCount || transCount < 0) && !todie) {
                 Object obj = beforeInvoke();
                 sampleStart = System.nanoTime();
-                boolean result = runTask();
+                boolean result = runTaskWithoutException();
                 statistics.addRunningTime(System.nanoTime() - sampleStart);
                 if (result) {
                     statistics.successCount++;
@@ -150,6 +150,18 @@ public class SimperfThread implements Runnable {
 
     }
 
+    /**
+     * 不抛出异常的任务执行
+     * @return
+     */
+    public boolean runTaskWithoutException() {
+        try {
+            return runTask();
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+    
     public boolean runTask() {
         SimperfUtil.sleep(10);
         return false;
