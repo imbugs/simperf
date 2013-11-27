@@ -51,6 +51,11 @@ public class RemoteSimperf {
         this.port = port;
     }
 
+    /**
+     * 建立连接,接收指令
+     * {cmd: '', param: ''}
+     * cmd RemoteCmd
+     */
     public void start() {
         try {
             if (null == clientSocket) {
@@ -90,12 +95,6 @@ public class RemoteSimperf {
     public void write(String line) throws Exception {
         outToServer.writeBytes(line + "\n");
         logger.debug("向服务器发送命令 [" + line + "]");
-    }
-
-    public static void main(String[] args) {
-        Gson gson = new Gson();
-        RemoteCmd remoteCmd = gson.fromJson("{cmd: 'close', param: 'xxhh'}", RemoteCmd.class);
-        System.out.println(remoteCmd);
     }
 
     public Simperf getSimperf() {

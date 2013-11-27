@@ -1,10 +1,25 @@
 package simperf.remote;
 
 public class RemoteCmd {
+    /**
+     * 关闭远程连接
+     */
     public static final String CMD_CLOSE   = "close";
+    /**
+     * 查询百分比
+     */
     public static final String CMD_PERCENT = "percent";
+    /**
+     * 启动测试
+     */
     public static final String CMD_START   = "start";
+    /**
+     * 停止测试
+     */
     public static final String CMD_STOP    = "stop";
+    /**
+     * 发送消息
+     */
     public static final String CMD_MSG     = "message";
 
     private String             cmd;
