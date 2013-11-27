@@ -25,6 +25,9 @@ public class RemoteSimperf {
     protected Simperf             simperf;
     protected String              server;
     protected int                 port   = 20122;
+    /**
+     * 远程client的唯一标识,由server端进行分配,以便server端能够正确识别
+     */
     protected String              session = "";
     
     protected Gson                gson   = new Gson();
