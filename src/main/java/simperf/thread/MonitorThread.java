@@ -69,6 +69,7 @@ public class MonitorThread extends Thread {
         try {
             this.simperf.getThreadPool().shutdown();
             this.simperf.getThreadPool().awaitTermination(5, TimeUnit.SECONDS);
+            this.simperf.setRunning(false);
         } catch (InterruptedException e) {
             logger.error("线程被异常打断", e);
         }

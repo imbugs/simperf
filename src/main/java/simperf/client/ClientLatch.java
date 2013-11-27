@@ -33,7 +33,7 @@ public class ClientLatch {
     protected static final Logger  logger     = LoggerFactory.getLogger(ClientLatch.class);
     protected static ReentrantLock clientLock = new ReentrantLock();
     protected static AtomicBoolean needWait   = new AtomicBoolean(true);
-    protected static Socket        clientSocket;
+    protected Socket               clientSocket;
     protected DataOutputStream     outToServer;
     protected BufferedReader       inFromServer;
     protected String               server;
@@ -46,6 +46,12 @@ public class ClientLatch {
     public ClientLatch(String server, int port) {
         this.server = server;
         this.port = port;
+    }
+
+    public ClientLatch(Socket clientSocket) {
+        this.clientSocket = clientSocket;
+        this.server = clientSocket.getInetAddress().getHostAddress();
+        this.port = clientSocket.getPort();
     }
 
     public void init() throws Exception {

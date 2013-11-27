@@ -9,7 +9,7 @@ import simperf.thread.SimperfThreadFactory;
 
 public class SimperfClientLatchTest {
     static MessageSender sender      = new MessageSender();
-    static ClientLatch   clientLatch = new ClientLatch("localhost", 6789);
+    static ClientLatch   clientLatch = new ClientLatch("localhost");
 
     /**
      * @param args

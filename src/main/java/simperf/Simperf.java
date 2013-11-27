@@ -63,6 +63,7 @@ public class Simperf {
     private CountDownLatch       threadLatch      = null;
     private List<SimperfThread>  threads          = new ArrayList<SimperfThread>();
     private String               startInfo        = "{}";
+    private boolean              running          = false;
     /**
      * JSON Style infomation
      */
@@ -131,6 +132,7 @@ public class Simperf {
             timeoutThread = new TimeoutAbortThread(this, timeout);
             timeoutThread.start();
         }
+        running = true;
     }
 
     public SimperfThread createThread() {
@@ -437,6 +439,7 @@ public class Simperf {
         for (SimperfThread thread : threads) {
             thread.stop();
         }
+        running = false;
         adjustThreadLock.unlock();
     }
 
@@ -454,5 +457,13 @@ public class Simperf {
 
     public TimeoutAbortThread getTimeoutThread() {
         return timeoutThread;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
     }
 }
