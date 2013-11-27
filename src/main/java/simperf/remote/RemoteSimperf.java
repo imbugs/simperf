@@ -25,7 +25,8 @@ public class RemoteSimperf {
     protected Simperf             simperf;
     protected String              server;
     protected int                 port   = 20122;
-
+    protected String              session = "";
+    
     protected Gson                gson   = new Gson();
     protected static Socket       clientSocket;
     protected DataOutputStream    outToServer;
@@ -75,8 +76,8 @@ public class RemoteSimperf {
                     continue;
                 }
                 RemoteInvoker invoker = new RemoteInvoker(simperf, remoteCmd);
-                String result = invoker.invoke();
-                write(result);
+                RemoteRequest result = invoker.invoke();
+                write(result.toJson());
             } while (!remoteCmd.getCmd().equals(RemoteCmd.CMD_CLOSE));
             clientSocket.close();
         } catch (Exception e) {
@@ -107,5 +108,13 @@ public class RemoteSimperf {
 
     public int getPort() {
         return port;
+    }
+
+    public String getSession() {
+        return session;
+    }
+
+    public void setSession(String session) {
+        this.session = session;
     }
 }

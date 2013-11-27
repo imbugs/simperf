@@ -20,31 +20,31 @@ public class RemoteInvoker {
         this.remoteCmd = remoteCmd;
     }
 
-    public String invoke() throws Exception {
+    public RemoteRequest invoke() throws Exception {
         String cmd = remoteCmd.getCmd();
         if (cmd.equals(RemoteCmd.CMD_PERCENT)) {
             float progress = this.simperf.getMonitorThread().percentProgress();
-            return "{type: 'percent', success: 'true', percent: '" + progress + "', data: ''}";
+            return new RemoteRequest("percent", "true", "", String.valueOf(progress));
         } else if (cmd.equals(RemoteCmd.CMD_START)) {
             if (!this.simperf.isRunning()) {
                 this.simperf.start();
-                return "{type: 'return', success: 'true', msg: 'start', data: ''}";
+                return new RemoteRequest("return", "true", "start", "");
             } else {
-                return "{type: 'return', success: 'false', msg: 'simperf is running', data: ''}";
+                return new RemoteRequest("return", "false", "simperf is running", "");
             }
         } else if (cmd.equals(RemoteCmd.CMD_STOP)) {
             if (this.simperf.isRunning()) {
                 this.simperf.stopAll();
-                return "{type: 'return', success: 'true', msg: 'stop', data: ''}";
+                return new RemoteRequest("return", "true", "stop", "");
             } else {
-                return "{type: 'return', success: 'false', msg: 'simperf is not running', data: ''}";
+                return new RemoteRequest("return", "false", "simperf is not running", "");
             }
         } else if (cmd.equals(RemoteCmd.CMD_CLOSE)) {
-            return "{type: 'return', success: 'true', msg: 'close', data: ''}";
+            return new RemoteRequest("return", "true", "close", "");
         } else if (cmd.equals(RemoteCmd.CMD_MSG)) {
             logger.info("[MSG] " + remoteCmd.getParam());
-            return "{type: 'return', success: 'true', msg: 'recieve', data: ''}";
+            return new RemoteRequest("return", "true", "recieve", "");
         }
-        return "{type: 'return', success: 'false', msg: 'unknown command', data: ''}";
+        return new RemoteRequest("return", "false", "unknown command", "");
     }
 }

@@ -13,14 +13,16 @@ public class RemoteSimperfTest {
 
     public static void main(String[] args) {
         Simperf simperf = new Simperf(10, 1000);
-        simperf.start(new SimperfThreadFactory() {
+        simperf.setThreadFactory(new SimperfThreadFactory() {
             public SimperfThread newThread() {
                 SendMessageThread t = new SendMessageThread();
                 t.setSender(sender);
                 return t;
             }
         });
+        //simperf.start();
         RemoteSimperf remoteSimperf = new RemoteSimperf(simperf, server);
+        remoteSimperf.setSession("hello kitty");
         remoteSimperf.start();
     }
 }
