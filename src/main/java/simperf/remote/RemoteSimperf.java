@@ -89,7 +89,7 @@ public class RemoteSimperf {
      */
     public void write(String line) throws Exception {
         outToServer.writeBytes(line + "\n");
-        logger.info("向服务器发送命令 [" + line + "]");
+        logger.debug("向服务器发送命令 [" + line + "]");
     }
 
     public static void main(String[] args) {
