@@ -78,7 +78,7 @@ public class RemoteSimperf {
                 if (remoteCmd == null) {
                     continue;
                 }
-                RemoteInvoker invoker = new RemoteInvoker(simperf, remoteCmd);
+                RemoteInvoker invoker = new RemoteInvoker(this, remoteCmd);
                 RemoteRequest result = invoker.invoke();
                 write(result.toJson());
             } while (!remoteCmd.getCmd().equals(RemoteCmd.CMD_CLOSE));

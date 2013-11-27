@@ -21,7 +21,11 @@ public class RemoteCmd {
      * 发送消息
      */
     public static final String CMD_MSG     = "message";
-
+    /**
+     * 查询或设置session
+     */
+    public static final String CMD_SESSION = "session";
+    
     private String             cmd;
     private String             param;
 

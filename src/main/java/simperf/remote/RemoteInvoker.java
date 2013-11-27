@@ -1,5 +1,6 @@
 package simperf.remote;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,11 +13,13 @@ import simperf.Simperf;
 public class RemoteInvoker {
     protected static final Logger logger = LoggerFactory.getLogger(RemoteInvoker.class);
 
+    private RemoteSimperf         remoteSimperf;
     private Simperf               simperf;
     private RemoteCmd             remoteCmd;
 
-    public RemoteInvoker(Simperf simperf, RemoteCmd remoteCmd) {
-        this.simperf = simperf;
+    public RemoteInvoker(RemoteSimperf remoteSimperf, RemoteCmd remoteCmd) {
+        this.remoteSimperf = remoteSimperf;
+        this.simperf = remoteSimperf.getSimperf();
         this.remoteCmd = remoteCmd;
     }
 
@@ -44,6 +47,14 @@ public class RemoteInvoker {
         } else if (cmd.equals(RemoteCmd.CMD_MSG)) {
             logger.info("[MSG] " + remoteCmd.getParam());
             return new RemoteRequest("return", "true", "recieve", "");
+        } else if (cmd.equals(RemoteCmd.CMD_SESSION)) {
+            String param = remoteCmd.getParam();
+            if (StringUtils.isNotBlank(param)) {
+                // set session if not black
+                this.remoteSimperf.setSession(param);
+            }
+            return new RemoteRequest("session", "true", "get/set session",
+                this.remoteSimperf.getSession());
         }
         return new RemoteRequest("return", "false", "unknown command", "");
     }
