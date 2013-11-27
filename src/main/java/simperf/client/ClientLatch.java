@@ -30,14 +30,14 @@ import org.slf4j.LoggerFactory;
  * @author imbugs
  */
 public class ClientLatch {
-    private static final Logger  logger     = LoggerFactory.getLogger(ClientLatch.class);
-    private static ReentrantLock clientLock = new ReentrantLock();
-    private static AtomicBoolean needWait   = new AtomicBoolean(true);
-    private static Socket        clientSocket;
-    private DataOutputStream     outToServer;
-    private BufferedReader       inFromServer;
-    private String               server;
-    private int                  port       = 20122;
+    protected static final Logger  logger     = LoggerFactory.getLogger(ClientLatch.class);
+    protected static ReentrantLock clientLock = new ReentrantLock();
+    protected static AtomicBoolean needWait   = new AtomicBoolean(true);
+    protected static Socket        clientSocket;
+    protected DataOutputStream     outToServer;
+    protected BufferedReader       inFromServer;
+    protected String               server;
+    protected int                  port       = 20122;
 
     public ClientLatch(String server) {
         this.server = server;
