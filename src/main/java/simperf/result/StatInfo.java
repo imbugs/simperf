@@ -9,18 +9,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import simperf.config.Constant;
+import simperf.util.SimperfUtil;
 
 /**
  * 统计信息类
  * @author imbugs
  */
 public class StatInfo {
-    private static final Logger logger        = LoggerFactory.getLogger(StatInfo.class);
+    private static final Logger logger          = LoggerFactory.getLogger(StatInfo.class);
 
     /**
      * 输出消息格式化
      */
-    private String              msgFormat     = Constant.DEFAULT_MSG_FORMAT;
+    private String              msgFormat       = Constant.DEFAULT_MSG_FORMAT;
 
     /**
      * 详细消息格式化,添加RT响应
@@ -30,7 +31,7 @@ public class StatInfo {
     /**
      * 时间格式化，例如：new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
      */
-    private SimpleDateFormat    dateFormat    = Constant.DEFAULT_DATE_FORMAT;
+    private SimpleDateFormat    dateFormat      = Constant.DEFAULT_DATE_FORMAT;
 
     /**
      * 本记录统计的时间
@@ -40,7 +41,7 @@ public class StatInfo {
     /**
      * 平均TPS
      */
-    public String               avgTps;
+    public String               avgTps          = SimperfUtil.na;
 
     /**
      * 发送总计数
@@ -60,7 +61,7 @@ public class StatInfo {
     /**
      * 平均响应时间, milliTime
      */
-    public String               avgRt;
+    public String               avgRt           = SimperfUtil.na;
 
     /**
      * 最大最小响应时间, milliTime
@@ -75,7 +76,7 @@ public class StatInfo {
     /**
      * 当前时间段TPS
      */
-    public String               tTps;
+    public String               tTps            = SimperfUtil.na;
 
     /**
      * 当前时间段计数
@@ -95,7 +96,7 @@ public class StatInfo {
     /**
      * 当前时间段平均响应时间
      */
-    public String               tAvgRt;
+    public String               tAvgRt          = SimperfUtil.na;
 
     /**
      * 当前时间段失败数
@@ -126,16 +127,16 @@ public class StatInfo {
         return String.format(msgFormat, timeStr, avgTps, count, duration, fail, tTps, tCount,
             tDuration, tFail);
     }
-    
+
     public String detailFormat() {
         String timeStr = String.valueOf(time);
         if (null != dateFormat) {
             timeStr = dateFormat.format(time);
         }
-        return String.format(detailMsgFormat, timeStr, avgTps, avgRt, maxRt, minRt, count, duration, fail, tTps, tAvgRt, tCount,
-            tDuration, tFail);
+        return String.format(detailMsgFormat, timeStr, avgTps, avgRt, maxRt, minRt, count,
+            duration, fail, tTps, tAvgRt, tCount, tDuration, tFail);
     }
-    
+
     public void write(FileWriter fw) {
         if (fw == null) {
             return;
