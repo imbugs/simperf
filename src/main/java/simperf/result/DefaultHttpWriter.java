@@ -21,159 +21,168 @@ import simperf.util.SimperfUtil;
  * @author imbugs
  */
 public class DefaultHttpWriter extends DefaultCallback {
-	private static final Logger logger = LoggerFactory
-			.getLogger(DefaultHttpWriter.class);
-	private LinkedBlockingQueue<Request> requestQueue = new LinkedBlockingQueue<Request>();
-	private String httpUrl;
-	private boolean running = true;
+    private static final Logger          logger       = LoggerFactory
+                                                          .getLogger(DefaultHttpWriter.class);
+    protected Thread                     writeThread;
+    protected long                       timeout      = 10000L;
+    private boolean                      running      = true;
+    private String                       httpUrl;
+    private LinkedBlockingQueue<Request> requestQueue = new LinkedBlockingQueue<Request>();
 
-	public DefaultHttpWriter(String httpUrl) {
-		this.httpUrl = httpUrl;
-	}
+    public DefaultHttpWriter(String httpUrl) {
+        this.httpUrl = httpUrl;
+    }
 
-	class Request {
-		protected AtomicInteger tryCount = new AtomicInteger(0);
-		protected String url;
+    class Request {
+        protected AtomicInteger tryCount = new AtomicInteger(0);
+        protected String        url;
 
-		public Request(String url) {
-			this.url = url;
-		}
+        public Request(String url) {
+            this.url = url;
+        }
 
-		public AtomicInteger getTryCount() {
-			return tryCount;
-		}
+        public AtomicInteger getTryCount() {
+            return tryCount;
+        }
 
-		public String getUrl() {
-			return url;
-		}
+        public String getUrl() {
+            return url;
+        }
 
-	}
+    }
 
-	class HttpGetRequest implements Runnable {
-		public void run() {
-			int currentTry = 0;
-			while (running || requestQueue.size() > 0) {
-				try {
-					Request request = requestQueue.poll();
-					if (null == request) {
-						SimperfUtil.sleep(200);
-						continue;
-					}
-					int tryCount = request.getTryCount().getAndIncrement();
-					if (tryCount >= 5) {
-						continue;
-					}
-					if (tryCount > currentTry) {
-						currentTry = tryCount;
-						SimperfUtil.sleep(1000);
-					}
-					int code = readContentFromGet(request.getUrl());
-					if (code != 200) {
-						requestQueue.offer(request);
-					}
-				} catch (Exception e) {
-				}
-			}
+    class HttpWriteThread implements Runnable {
+        public void run() {
+            logger.info("启动Http结果上传线程");
+            int currentTry = 0;
+            while (running || requestQueue.size() > 0) {
+                try {
+                    Request request = requestQueue.poll();
+                    if (null == request) {
+                        SimperfUtil.sleep(200);
+                        continue;
+                    }
+                    int tryCount = request.getTryCount().getAndIncrement();
+                    if (tryCount >= 5) {
+                        logger.error("上传结果失败, " + request.getUrl());
+                        continue;
+                    }
+                    if (tryCount > currentTry) {
+                        currentTry = tryCount;
+                        SimperfUtil.sleep(1000);
+                    }
+                    int code = readContentFromGet(request.getUrl());
+                    if (code != 200) {
+                        requestQueue.offer(request);
+                    }
+                } catch (Exception e) {
+                }
+            }
 
-		}
-	}
+        }
+    }
 
-	public void onStart(MonitorThread monitorThread) {
-		new Thread(new HttpGetRequest()).start();
-		List<String> messages = monitorThread.getMessages();
-		for (String string : messages) {
-			requestQueue.offer(new Request(assembleUrl(string)));
-		}
-	}
+    public void onStart(MonitorThread monitorThread) {
+        writeThread = new Thread(new HttpWriteThread());
+        writeThread.start();
+        List<String> messages = monitorThread.getMessages();
+        for (String string : messages) {
+            requestQueue.offer(new Request(assembleUrl(string)));
+        }
+    }
 
-	public void onMonitor(MonitorThread monitorThread, StatInfo statInfo) {
-		requestQueue.offer(new Request(assembleUrl(statInfo, false)));
-	}
+    public void onMonitor(MonitorThread monitorThread, StatInfo statInfo) {
+        requestQueue.offer(new Request(assembleUrl(statInfo, false)));
+    }
 
-	public void onExit(MonitorThread monitorThread) {
-		StatInfo statInfo = monitorThread.getStatInfo();
-		requestQueue.offer(new Request(assembleUrl(statInfo, true)));
-		System.out.println("exit");
-		running = false;
-	}
+    public void onExit(MonitorThread monitorThread) {
+        StatInfo statInfo = monitorThread.getStatInfo();
+        requestQueue.offer(new Request(assembleUrl(statInfo, true)));
+        running = false;
+        try {
+            writeThread.join(timeout);
+        } catch (Exception e) {
+            logger.error("等待写线程失败", e);
+        }
+        logger.info("HttpWriter exit");
+    }
 
-	public String assembleUrl(String msg) {
-		String param = "";
-		try {
-			param += "message=";
-			param += encode(msg);
-		} catch (Exception e) {
-			logger.error("组装URL失败.", e);
-		}
-		return httpUrl + "?" + param;
-	}
+    public String assembleUrl(String msg) {
+        String param = "";
+        try {
+            param += "message=";
+            param += encode(msg);
+        } catch (Exception e) {
+            logger.error("组装URL失败.", e);
+        }
+        return httpUrl + "?" + param;
+    }
 
-	public String assembleUrl(StatInfo statInfo, boolean summary) {
-		StringBuffer param = new StringBuffer();
-		try {
-			if (null != statInfo) {
-				param.append("time=");
-				param.append(statInfo.time);
-				param.append("&");
+    public String assembleUrl(StatInfo statInfo, boolean summary) {
+        StringBuffer param = new StringBuffer();
+        try {
+            if (null != statInfo) {
+                param.append("time=");
+                param.append(statInfo.time);
+                param.append("&");
 
-				param.append("avgtps=");
-				param.append(encode(statInfo.avgTps));
-				param.append("&");
+                param.append("avgtps=");
+                param.append(encode(statInfo.avgTps));
+                param.append("&");
 
-				param.append("count=");
-				param.append(statInfo.count);
-				param.append("&");
+                param.append("count=");
+                param.append(statInfo.count);
+                param.append("&");
 
-				param.append("duration=");
-				param.append(statInfo.duration);
-				param.append("&");
+                param.append("duration=");
+                param.append(statInfo.duration);
+                param.append("&");
 
-				param.append("fail=");
-				param.append(statInfo.fail);
-				param.append("&");
+                param.append("fail=");
+                param.append(statInfo.fail);
+                param.append("&");
 
-				param.append("ttps=");
-				param.append(encode(statInfo.tTps));
-				param.append("&");
+                param.append("ttps=");
+                param.append(encode(statInfo.tTps));
+                param.append("&");
 
-				param.append("tcount=");
-				param.append(statInfo.tCount);
-				param.append("&");
+                param.append("tcount=");
+                param.append(statInfo.tCount);
+                param.append("&");
 
-				param.append("tduration=");
-				param.append(statInfo.tDuration);
-				param.append("&");
+                param.append("tduration=");
+                param.append(statInfo.tDuration);
+                param.append("&");
 
-				param.append("tfail=");
-				param.append(statInfo.tFail);
-				param.append("&");
+                param.append("tfail=");
+                param.append(statInfo.tFail);
+                param.append("&");
 
-				param.append("summary=");
-				param.append(summary);
-			}
-		} catch (Exception e) {
-			logger.error("组装URL失败.", e);
-		}
+                param.append("summary=");
+                param.append(summary);
+            }
+        } catch (Exception e) {
+            logger.error("组装URL失败.", e);
+        }
 
-		return httpUrl + "?" + param.toString();
-	}
+        return httpUrl + "?" + param.toString();
+    }
 
-	public static int readContentFromGet(String url) {
-		int code = -1;
-		try {
-			URL getUrl = new URL(url);
-			HttpURLConnection connection = (HttpURLConnection) getUrl
-					.openConnection();
-			connection.connect();
-			code = connection.getResponseCode();
-			connection.disconnect();
-		} catch (Exception e) {
-			logger.info("提交信息失败 URL=[" + url + "]");
-		}
-		return code;
-	}
+    public static int readContentFromGet(String url) {
+        int code = -1;
+        try {
+            URL getUrl = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) getUrl.openConnection();
+            connection.connect();
+            code = connection.getResponseCode();
+            connection.disconnect();
+        } catch (Exception e) {
+            logger.info("提交信息失败 URL=[" + url + "]");
+        }
+        return code;
+    }
 
-	public static String encode(String s) throws UnsupportedEncodingException {
-		return URLEncoder.encode(s, "gbk");
-	}
+    public static String encode(String s) throws UnsupportedEncodingException {
+        return URLEncoder.encode(s, "gbk");
+    }
 }

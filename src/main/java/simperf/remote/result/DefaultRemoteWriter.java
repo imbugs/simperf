@@ -1,5 +1,8 @@
 package simperf.remote.result;
 
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,6 +11,7 @@ import simperf.remote.RemoteSimperf;
 import simperf.result.StatInfo;
 import simperf.thread.DefaultCallback;
 import simperf.thread.MonitorThread;
+import simperf.util.SimperfUtil;
 
 import com.google.gson.Gson;
 
@@ -18,36 +22,97 @@ import com.google.gson.Gson;
  */
 public class DefaultRemoteWriter extends DefaultCallback {
 
-    protected static final Logger logger = LoggerFactory.getLogger(DefaultRemoteWriter.class);
+    protected static final Logger          logger       = LoggerFactory
+                                                            .getLogger(DefaultRemoteWriter.class);
 
-    protected RemoteSimperf       remoteSimperf;
+    protected RemoteSimperf                remoteSimperf;
+    protected Thread                       writeThread;
+    protected long                         timeout      = 10000L;
+    protected LinkedBlockingQueue<Request> requestQueue = new LinkedBlockingQueue<Request>();
+    protected boolean                      running      = true;
 
     public DefaultRemoteWriter(RemoteSimperf remoteSimperf) {
         this.remoteSimperf = remoteSimperf;
     }
 
+    class Request {
+        protected AtomicInteger tryCount = new AtomicInteger(0);
+        protected String        statJson;
+
+        public Request(String statJson) {
+            this.statJson = statJson;
+        }
+
+        public AtomicInteger getTryCount() {
+            return tryCount;
+        }
+
+        public String getStatJson() {
+            return statJson;
+        }
+
+        public void setStatJson(String statJson) {
+            this.statJson = statJson;
+        }
+
+    }
+
+    class RemoteWriteThread implements Runnable {
+        public void run() {
+            logger.info("启动RemoteWriteThread");
+            int currentTry = 0;
+            while (running || requestQueue.size() > 0) {
+                try {
+                    Request request = requestQueue.poll();
+                    if (null == request) {
+                        SimperfUtil.sleep(200);
+                        continue;
+                    }
+                    int tryCount = request.getTryCount().getAndIncrement();
+                    if (tryCount >= 5) {
+                        // 尝试达到5次
+                        logger.error("上传结果失败, " + request.getStatJson());
+                        continue;
+                    }
+                    if (tryCount > currentTry) {
+                        currentTry = tryCount;
+                        SimperfUtil.sleep(1000);
+                    }
+                    try {
+                        DefaultRemoteWriter.this.remoteSimperf.write(request.getStatJson());
+                    } catch (Exception e) {
+                        requestQueue.offer(request);
+                    }
+                } catch (Exception e) {
+                }
+            }
+
+        }
+    }
+
     public void onStart(MonitorThread monitorThread) {
+        writeThread = new Thread(new RemoteWriteThread());
+        writeThread.start();
     }
 
     public void onMonitor(MonitorThread monitorThread, StatInfo statInfo) {
         JsonStatInfo jsonStat = new JsonStatInfo(statInfo, remoteSimperf.getSession(), false);
         RemoteRequest request = new RemoteRequest("result", "true", "", jsonStat);
-        try {
-            this.remoteSimperf.write(request.toJson());
-        } catch (Exception e) {
-            logger.error("上传结果失败, " + request.toJson());
-        }
+        requestQueue.offer(new Request(request.toJson()));
     }
 
     public void onExit(MonitorThread monitorThread) {
         StatInfo statInfo = monitorThread.getStatInfo();
         JsonStatInfo jsonStat = new JsonStatInfo(statInfo, remoteSimperf.getSession(), true);
         RemoteRequest request = new RemoteRequest("result", "true", "", jsonStat);
+        requestQueue.offer(new Request(request.toJson()));
+        running = false;
         try {
-            this.remoteSimperf.write(request.toJson());
+            writeThread.join(timeout);
         } catch (Exception e) {
-            logger.error("上传结果失败, " + request.toJson());
+            logger.error("等待写线程失败", e);
         }
+        logger.info("RemoteWriter exit");
     }
 
     static class JsonStatInfo {

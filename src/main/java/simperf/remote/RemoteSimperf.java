@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import simperf.Simperf;
 import simperf.remote.result.DefaultRemoteWriter;
 import simperf.thread.DefaultCallback;
 import simperf.thread.MonitorThread;
+import simperf.util.SimperfUtil;
 
 import com.google.gson.Gson;
 
@@ -20,17 +22,19 @@ import com.google.gson.Gson;
  * 远程Simperf, 此时Simperf做为一个Client接受远程服务器的指令
  * @author imbugs
  */
-public class RemoteSimperf {
-    protected static final Logger logger = LoggerFactory.getLogger(RemoteSimperf.class);
+public class RemoteSimperf extends Thread{
+    protected static final Logger logger     = LoggerFactory.getLogger(RemoteSimperf.class);
     protected Simperf             simperf;
     protected String              server;
-    protected int                 port   = 20122;
+    protected int                 port       = 20122;
+    protected boolean             retry      = true;
+    protected ReentrantLock       socketLock = new ReentrantLock();
     /**
      * 远程client的唯一标识,由server端进行分配,以便server端能够正确识别
      */
-    protected String              session = "";
-    
-    protected Gson                gson   = new Gson();
+    protected String              session    = "";
+
+    protected Gson                gson       = new Gson();
     protected static Socket       clientSocket;
     protected DataOutputStream    outToServer;
     protected BufferedReader      inFromServer;
@@ -41,6 +45,7 @@ public class RemoteSimperf {
         this.simperf.getMonitorThread().registerCallback(new DefaultCallback() {
             public void onExit(MonitorThread monitorThread) {
                 try {
+                    retry = false;
                     RemoteSimperf.clientSocket.close();
                 } catch (IOException e) {
                     logger.error("与RemoteSimperf断开连接时发生错误.", e);
@@ -60,31 +65,42 @@ public class RemoteSimperf {
      * {cmd: '', param: ''}
      * cmd RemoteCmd
      */
-    public void start() {
-        try {
-            if (null == clientSocket) {
-                clientSocket = new Socket(server, port);
-                InputStreamReader isr = new InputStreamReader(clientSocket.getInputStream());
-                outToServer = new DataOutputStream(clientSocket.getOutputStream());
-                inFromServer = new BufferedReader(isr);
-            }
-
-            String line;
-            RemoteCmd remoteCmd;
-            do {
-                line = inFromServer.readLine();
-                logger.info("Remote cmd : " + line);
-                remoteCmd = gson.fromJson(line, RemoteCmd.class);
-                if (remoteCmd == null) {
-                    continue;
+    public void run() {
+        while (retry) {
+            try {
+                try {
+                    socketLock.lock();
+                    // connect or retry
+                    clientSocket = new Socket(server, port);
+                    InputStreamReader isr = new InputStreamReader(clientSocket.getInputStream());
+                    outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                    inFromServer = new BufferedReader(isr);
+                } finally {
+                    socketLock.unlock();
                 }
-                RemoteInvoker invoker = new RemoteInvoker(this, remoteCmd);
-                RemoteRequest result = invoker.invoke();
-                write(result.toJson());
-            } while (!remoteCmd.getCmd().equals(RemoteCmd.CMD_CLOSE));
-            clientSocket.close();
-        } catch (Exception e) {
-            logger.warn("与RemoteSimperf的连接关闭.");
+
+                String line;
+                RemoteCmd remoteCmd;
+                do {
+                    line = inFromServer.readLine();
+                    logger.debug("Remote cmd : " + line);
+                    remoteCmd = gson.fromJson(line, RemoteCmd.class);
+                    if (remoteCmd == null) {
+                        continue;
+                    }
+                    RemoteInvoker invoker = new RemoteInvoker(this, remoteCmd);
+                    RemoteRequest result = invoker.invoke();
+                    write(result.toJson());
+                } while (!remoteCmd.getCmd().equals(RemoteCmd.CMD_CLOSE));
+                clientSocket.close();
+            } catch (Exception e) {
+                if (retry) {
+                    logger.warn("与RemoteSimperf的连接已关闭. 尝试重新连接");
+                    SimperfUtil.sleep(1000);
+                } else {
+                    logger.warn("与RemoteSimperf的连接关闭.");
+                }
+            }
         }
     }
 
@@ -97,8 +113,13 @@ public class RemoteSimperf {
      *      return, 返回值
      */
     public void write(String line) throws Exception {
-        outToServer.writeBytes(line + "\n");
-        logger.debug("向服务器发送命令 [" + line + "]");
+        try {
+            socketLock.lock();
+            outToServer.writeBytes(line + "\n");
+            logger.debug("向服务器发送命令 [" + line + "]");
+        } finally {
+            socketLock.unlock();
+        }
     }
 
     public Simperf getSimperf() {
