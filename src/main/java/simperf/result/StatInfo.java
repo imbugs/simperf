@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import simperf.config.Constant;
-import simperf.util.SimperfUtil;
 
 /**
  * 统计信息类
@@ -41,7 +40,7 @@ public class StatInfo {
     /**
      * 平均TPS
      */
-    public String               avgTps          = SimperfUtil.na;
+    public String               avgTps          = Constant.DEFAULT_NA;
 
     /**
      * 发送总计数
@@ -61,7 +60,7 @@ public class StatInfo {
     /**
      * 平均响应时间, milliTime
      */
-    public String               avgRt           = SimperfUtil.na;
+    public String               avgRt           = Constant.DEFAULT_NA;
 
     /**
      * 最大最小响应时间, milliTime
@@ -76,7 +75,7 @@ public class StatInfo {
     /**
      * 当前时间段TPS
      */
-    public String               tTps            = SimperfUtil.na;
+    public String               tTps            = Constant.DEFAULT_NA;
 
     /**
      * 当前时间段计数
@@ -96,7 +95,7 @@ public class StatInfo {
     /**
      * 当前时间段平均响应时间
      */
-    public String               tAvgRt          = SimperfUtil.na;
+    public String               tAvgRt          = Constant.DEFAULT_NA;
 
     /**
      * 当前时间段失败数
