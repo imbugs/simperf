@@ -49,6 +49,8 @@ public class RemoteSimperf extends Thread{
                     RemoteSimperf.clientSocket.close();
                 } catch (IOException e) {
                     logger.error("与RemoteSimperf断开连接时发生错误.", e);
+                } catch (Throwable e) {
+                    logger.error("与RemoteSimperf断开连接时发生错误.", e);
                 }
             }
         });

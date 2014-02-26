@@ -117,7 +117,12 @@ public class MonitorThread extends Thread {
     public void doStart() {
         if (callbacks.size() > 0) {
             for (Callback task : callbacks) {
-                task.onStart(this);
+                try {
+                    task.onStart(this);
+                } catch (Throwable e) {
+                    String cb = task.getClass().getName();
+                    logger.error("执行Callback.onStart()失败 callback=" + cb, e);
+                }
             }
         }
     }
@@ -125,7 +130,12 @@ public class MonitorThread extends Thread {
     public void doExit() {
         if (callbacks.size() > 0) {
             for (Callback task : callbacks) {
-                task.onExit(this);
+                try {
+                    task.onExit(this);
+                } catch (Throwable e) {
+                    String cb = task.getClass().getName();
+                    logger.error("执行Callback.onExit()失败 callback=" + cb, e);
+                }
             }
         }
     }
@@ -175,7 +185,7 @@ public class MonitorThread extends Thread {
         statInfo.maxRt = allCalc.maxRt / 1000000;
         statInfo.minRt = allCalc.minRt / 1000000;
         statInfo.runningTime = allCalc.runningTime / 1000000;
-        statInfo.avgRt = SimperfUtil.divide(statInfo.runningTime , statInfo.count);
+        statInfo.avgRt = SimperfUtil.divide(statInfo.runningTime, statInfo.count);
         statInfo.time = System.currentTimeMillis();
 
         // 统计实时信息，距离上一次统计的信息
@@ -184,7 +194,7 @@ public class MonitorThread extends Thread {
             statInfo.tCount = statInfo.count - lastData.successCount - lastData.failCount;
             statInfo.tFail = allCalc.failCount - lastData.failCount;
             statInfo.tRunningTime = (allCalc.runningTime - lastData.runningTime) / 1000000;
-            statInfo.tAvgRt = SimperfUtil.divide(statInfo.tRunningTime , statInfo.tCount);
+            statInfo.tAvgRt = SimperfUtil.divide(statInfo.tRunningTime, statInfo.tCount);
             statInfo.tTps = SimperfUtil.divide(statInfo.tCount * 1000, statInfo.tDuration);
         } else {
             // 第一次统计，没有上次记录结果
@@ -208,7 +218,12 @@ public class MonitorThread extends Thread {
         StatInfo statInfo = this.getStatInfo();
         if (callbacks.size() > 0) {
             for (Callback task : callbacks) {
-                task.onMonitor(this, statInfo);
+                try {
+                    task.onMonitor(this, statInfo);
+                } catch (Throwable e) {
+                    String cb = task.getClass().getName();
+                    logger.error("执行Callback.onMonitor()失败 callback=" + cb, e);
+                }
             }
         }
     }
@@ -247,5 +262,13 @@ public class MonitorThread extends Thread {
 
     public void write(String message) {
         this.messages.add(message);
+    }
+
+    public List<Callback> getCallbacks() {
+        return callbacks;
+    }
+
+    public void setCallbacks(List<Callback> callbacks) {
+        this.callbacks = callbacks;
     }
 }
