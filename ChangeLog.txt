@@ -2,6 +2,7 @@ TODO:
 Version 1.0.6
 New Feature: 添加ClientLatch, 可以使用服务器端同步多台机器的执行
 New Feature: 添加RT统计,包括avgRt,minRt,maxRt,tAvgRt
+New Feature: 添加流量回放
 ==================
 Version 1.0.5
 New Feature: 添加百分比计算
