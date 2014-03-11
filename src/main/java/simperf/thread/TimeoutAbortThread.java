@@ -20,7 +20,8 @@ public class TimeoutAbortThread extends ControllThread {
     // 检查间隔 milliseconds
     private long                interval  = 250;
     private long                startTime = -1;
-
+    // 10s后如果没有停止则强制kill
+    private long                forceDelay = 10000L;
     public TimeoutAbortThread(long timeout) {
         this.timeout = timeout;
     }
@@ -45,6 +46,19 @@ public class TimeoutAbortThread extends ControllThread {
                 // 如果监测到时间已经到了
                 if (System.currentTimeMillis() - startTime >= timeout && timeout > 0) {
                     simperf.stopAll();
+                    logger.info("simperf超时, 停止所有线程 timeout=" + timeout);
+                    break;
+                }
+            }
+            
+            // 在一段时间后需要强制abort线程
+            while (simperf.getMonitorThread().isAlive()) {
+                SimperfUtil.sleep(interval);
+                // 如果监测到时间已经到了
+                if (System.currentTimeMillis() - startTime >= timeout + forceDelay && timeout > 0) {
+                    simperf.getThreadPool().shutdownNow();
+                    logger.info("尝试强制关闭线程池");
+                    break;
                 }
             }
         } catch (Throwable e) {
@@ -72,6 +86,14 @@ public class TimeoutAbortThread extends ControllThread {
 
     public void setInterval(long interval) {
         this.interval = interval;
+    }
+
+    public long getForceKill() {
+        return forceDelay;
+    }
+
+    public void setForceKill(long forceKill) {
+        this.forceDelay = forceKill;
     }
 
 }
