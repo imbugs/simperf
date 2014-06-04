@@ -1,12 +1,7 @@
 package simperf.thread;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import simperf.Simperf;
 import simperf.config.Constant;
 import simperf.result.DataStatistics;
@@ -14,6 +9,11 @@ import simperf.result.DefaultConsolePrinter;
 import simperf.result.DefaultLogFileWriter;
 import simperf.result.StatInfo;
 import simperf.util.SimperfUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 监控统计线程
@@ -50,11 +50,13 @@ public class MonitorThread extends Thread {
     // 默认的日志文件输出
     private DefaultLogFileWriter defaultLogFileWriter  = new DefaultLogFileWriter(
                                                            Constant.DEFAULT_RESULT_LOG);
+    private CountDownLatch threadLatch;
 
     public MonitorThread(Simperf simperf) {
         this.simperf = simperf;
         this.threads = simperf.getThreads();
         this.interval = simperf.getInterval();
+        this.threadLatch = simperf.getThreadLatch();
 
         this.registerCallback(defaultConsolePrinter);
         this.registerCallback(defaultLogFileWriter);
@@ -115,6 +117,14 @@ public class MonitorThread extends Thread {
     }
 
     public void doStart() {
+        try {
+            // wait all thread ready
+            if (threadLatch != null) {
+                this.threadLatch.await();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         if (callbacks.size() > 0) {
             for (Callback task : callbacks) {
                 try {
@@ -238,7 +248,6 @@ public class MonitorThread extends Thread {
 
     /**
      * 清除回调
-     * @param p
      */
     public void clearCallback() {
         this.callbacks.clear();
