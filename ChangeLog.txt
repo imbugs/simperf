@@ -1,4 +1,7 @@
 TODO:
+Version 1.0.7
+Change: MonitorThread等待全部线程启动
+==================
 Version 1.0.6
 New Feature: 添加ClientLatch, 可以使用服务器端同步多台机器的执行
 New Feature: 添加RT统计,包括avgRt,minRt,maxRt,tAvgRt

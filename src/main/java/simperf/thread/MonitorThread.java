@@ -24,6 +24,8 @@ public class MonitorThread extends Thread {
                                                            .getLogger(MonitorThread.class);
 
     private Simperf              simperf;
+    // 是否等待所有线程启动完毕后再进行监控
+    private boolean              waitAllThread         = false;
     // simperf执行线程
     private List<SimperfThread>  threads;
     // 监控周期
@@ -50,7 +52,7 @@ public class MonitorThread extends Thread {
     // 默认的日志文件输出
     private DefaultLogFileWriter defaultLogFileWriter  = new DefaultLogFileWriter(
                                                            Constant.DEFAULT_RESULT_LOG);
-    private CountDownLatch threadLatch;
+    private CountDownLatch       threadLatch;
 
     public MonitorThread(Simperf simperf) {
         this.simperf = simperf;
@@ -117,14 +119,18 @@ public class MonitorThread extends Thread {
     }
 
     public void doStart() {
-        try {
-            // wait all thread ready
-            if (threadLatch != null) {
-                this.threadLatch.await();
+        if (waitAllThread) {
+            try {
+                logger.info("等待全部线程启动");
+                // wait all thread ready
+                if (threadLatch != null) {
+                    threadLatch.await();
+                }
+            } catch (InterruptedException e) {
+                logger.error("等待全部线程启动被异常打断", e);
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
+        logger.info("监控线程开始工作");
         if (callbacks.size() > 0) {
             for (Callback task : callbacks) {
                 try {
@@ -279,5 +285,13 @@ public class MonitorThread extends Thread {
 
     public void setCallbacks(List<Callback> callbacks) {
         this.callbacks = callbacks;
+    }
+
+    public boolean isWaitAllThread() {
+        return waitAllThread;
+    }
+
+    public void setWaitAllThread(boolean waitAllThread) {
+        this.waitAllThread = waitAllThread;
     }
 }
