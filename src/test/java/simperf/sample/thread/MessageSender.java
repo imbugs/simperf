@@ -8,7 +8,7 @@ public class MessageSender {
 
     public boolean send() {
         try {
-            Thread.sleep(rand.nextInt(20) + 50);
+            Thread.sleep(rand.nextInt(20)+50);
         } catch (Exception e) {
         }
         return true;

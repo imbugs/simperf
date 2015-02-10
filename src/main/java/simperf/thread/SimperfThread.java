@@ -66,7 +66,7 @@ public class SimperfThread implements Runnable {
 
                 if (maxTps > 0) {
                     // 休眠一定时间，达到指定TPS
-                    long sleepTime = calcSleepTime();
+                    long sleepTime = calcSleepTime ();
                     if (sleepTime > 0) {
                         Thread.sleep(sleepTime);
                     }
@@ -103,9 +103,37 @@ public class SimperfThread implements Runnable {
         return null;
     }
 
+    private long previousTime = 0;
+    
     /**
      * 计算休眠时间，以达到指定maxTPS
      */
+    // 20-70
+    // 25.020302556124296
+    // 3.7028772596455317
+    // 2.486145898488551
+    // 3.0529248271125193
+    protected long calcSleepTimeByJmeter() {
+        long currentTime = System.currentTimeMillis();
+
+        long msPerRequest = (long) (1000 / maxTps);
+        long currentTarget = previousTime  + msPerRequest;
+        if (currentTime > currentTarget) {
+            // We're behind schedule -- try to catch up:
+            previousTime = currentTime;
+            return 0;
+        }
+        previousTime = currentTarget;
+        return currentTarget - currentTime;
+    }
+    
+    /**
+     * 计算休眠时间，以达到指定maxTPS
+     */
+    // 20-70
+    // 4.400952169701463
+    // 5.53010849803148
+    // 18.66489842815474
     protected long calcSleepTime() {
         if (maxTps <= 0) {
             return -1;
